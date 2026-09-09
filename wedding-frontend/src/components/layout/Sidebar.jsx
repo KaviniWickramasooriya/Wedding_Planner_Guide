@@ -1,9 +1,10 @@
-import React from 'react';
-import { LayoutDashboard, Calendar, Mail, FileText, Contact, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { LayoutDashboard, Calendar, Mail, FileText, Contact, LogOut, Menu, X } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
 
 export const Sidebar = ({ activeTab, setActiveTab }) => {
   const { user, data, logout, analytics } = useWedding();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -17,62 +18,99 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
   const completedCount = analytics?.completedCountVal || 0;
   const progressPercentage = analytics?.progressPercentage || 0;
 
+  const handleNavClick = (id) => {
+    setActiveTab(id);
+    setIsMobileOpen(false);
+  };
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between h-full shrink-0 z-20">
-      <div>
-        {/* User Account Info */}
-        <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center shrink-0">
+    <>
+      {/* Mobile Hamburger Header Bar */}
+      <div className="md:hidden flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center text-xs">
             {initials}
           </div>
-          <div className="overflow-hidden">
-            <h4 className="font-semibold text-sm text-gray-800 truncate" title={user?.name || 'Guest User'}>
-              {user?.name || 'Guest User'}
-            </h4>
-            <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold uppercase">Free</span>
-          </div>
+          <span className="font-bold text-sm text-gray-800">{user?.name || 'User'}</span>
         </div>
-
-        {/* Navigation */}
-        <nav className="p-3 space-y-1">
-          <NavItem id="overview" label="Overview" icon={LayoutDashboard} activeTab={activeTab} setActiveTab={setActiveTab} />
-          <NavItem id="planning" label="Planning" icon={Calendar} activeTab={activeTab} setActiveTab={setActiveTab} />
-          <NavItem id="invite" label="Invite" icon={Mail} activeTab={activeTab} setActiveTab={setActiveTab} />
-
-          <div className="pt-4 pb-2 px-3">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Quick Access</span>
-          </div>
-
-          <NavItem id="notes" label="Notes" icon={FileText} activeTab={activeTab} setActiveTab={setActiveTab} />
-          <NavItem id="contacts" label="Contacts" icon={Contact} activeTab={activeTab} setActiveTab={setActiveTab} />
-        </nav>
+        <button 
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+        >
+          {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
       </div>
 
-      {/* Progress Card & Actions */}
-      <div className="p-4 space-y-4">
-        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <div className="flex justify-between items-center text-sm font-medium mb-1">
-            <span className="flex items-center gap-1.5 text-gray-700"><Calendar size={14}/> Planning Progress</span>
-            <span className="text-slate-900 font-bold">{progressPercentage}%</span>
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div 
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+        ></div>
+      )}
+
+      {/* Sidebar Drawer */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-50
+        w-64 bg-white border-r border-gray-200 flex flex-col justify-between h-full shrink-0
+        transform transition-transform duration-300 ease-in-out
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div>
+          {/* User Account Info */}
+          <div className="p-4 border-b border-gray-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center shrink-0">
+              {initials}
+            </div>
+            <div className="overflow-hidden">
+              <h4 className="font-semibold text-sm text-gray-800 truncate" title={user?.name || 'Guest User'}>
+                {user?.name || 'Guest User'}
+              </h4>
+              <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold uppercase">Free</span>
+            </div>
           </div>
-          <p className="text-[11px] text-gray-500 font-medium mb-2">{completedCount} of 6 tasks completed</p>
-          <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div className="bg-slate-900 h-full rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
-          </div>
-          {eventDate && <p className="text-xs text-gray-400 mt-3 font-medium">Event Date: {eventDate}</p>}
+
+          {/* Navigation */}
+          <nav className="p-3 space-y-1">
+            <NavItem id="overview" label="Overview" icon={LayoutDashboard} activeTab={activeTab} setActiveTab={handleNavClick} />
+            <NavItem id="planning" label="Planning" icon={Calendar} activeTab={activeTab} setActiveTab={handleNavClick} />
+            <NavItem id="invite" label="Invite" icon={Mail} activeTab={activeTab} setActiveTab={handleNavClick} />
+
+            <div className="pt-4 pb-2 px-3">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Quick Access</span>
+            </div>
+
+            <NavItem id="notes" label="Notes" icon={FileText} activeTab={activeTab} setActiveTab={handleNavClick} />
+            <NavItem id="contacts" label="Contacts" icon={Contact} activeTab={activeTab} setActiveTab={handleNavClick} />
+          </nav>
         </div>
 
-        <div className="space-y-2">
-          <button 
-            onClick={logout} 
-            className="w-full flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 transition-colors text-rose-600 font-bold text-xs py-2.5 rounded-xl shadow-sm"
-          >
-            <LogOut size={14} />
-            Log Out
-          </button>
+        {/* Progress Card & Actions */}
+        <div className="p-4 space-y-4">
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div className="flex justify-between items-center text-sm font-medium mb-1">
+              <span className="flex items-center gap-1.5 text-gray-700"><Calendar size={14}/> Planning Progress</span>
+              <span className="text-slate-900 font-bold">{progressPercentage}%</span>
+            </div>
+            <p className="text-[11px] text-gray-500 font-medium mb-2">{completedCount} of 6 tasks completed</p>
+            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+              <div className="bg-slate-900 h-full rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
+            </div>
+            {eventDate && <p className="text-xs text-gray-400 mt-3 font-medium">Event Date: {eventDate}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <button 
+              onClick={logout} 
+              className="w-full flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 transition-colors text-rose-600 font-bold text-xs py-2.5 rounded-xl shadow-sm"
+            >
+              <LogOut size={14} />
+              Log Out
+            </button>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 
