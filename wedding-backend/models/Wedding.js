@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const WeddingSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true }, 
+  userId: { type: String, required: true }, 
+  eventType: { type: String, default: 'Wedding' },
   couple: {
     bride: { firstName: String, lastName: String, email: String, phone: String },
     groom: { firstName: String, lastName: String, email: String, phone: String }
@@ -24,12 +25,17 @@ const WeddingSchema = new mongoose.Schema({
     }]
   },
   guests: [{
+    side: { type: String, default: "Bride's" },
     category: String,
     title: String,
     firstName: String,
     lastName: String,
     phone: String,
-    rsvp: { type: String, default: 'Pending' }
+    rsvp: { type: String, default: 'Pending' },
+    adults: { type: Number, default: 1 },
+    half: { type: Number, default: 0 },
+    kids: { type: Number, default: 0 },
+    liquor: { type: Number, default: 0 }
   }],
   timeline: [{ day: String, startTime: String, endTime: String, event: String, coordinator: String }],
   tables: [{ id: String, name: String, capacity: Number, assignedGuests: [String] }],
@@ -40,10 +46,16 @@ const WeddingSchema = new mongoose.Schema({
     isPinned: Boolean,
     createdAt: { type: Date, default: Date.now }
   }],
-  contacts: [{ name: String, email: String, phone: String, type: String, notes: String }]
+  contacts: [{ 
+    name: String, 
+    email: String, 
+    phone: String, 
+    type: String, 
+    notes: String 
+  }],
+  completedSections: { type: Map, of: Boolean, default: {} }
 }, { timestamps: true });
 
-// Remove the 'next' parameter entirely for synchronous calculations
 WeddingSchema.pre('save', function() {
   if (this.budget && Array.isArray(this.budget.categories)) {
     this.budget.categories.forEach(category => {
