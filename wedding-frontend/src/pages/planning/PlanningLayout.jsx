@@ -7,7 +7,7 @@ import { TimelineTab } from './TimelineTab';
 import { SeatingMap } from './SeatingMap';
 
 export const PlanningLayout = () => {
-  const [activeStep, setActiveStep] = useState(4); // Default to Budget Map based on your screenshots
+  const [activeStep, setActiveStep] = useState(1); // Default to Step 1: Couple Details
 
   const steps = [
     { id: 1, title: 'Couple Details', desc: 'Basic information about the bride and groom' },
@@ -19,8 +19,8 @@ export const PlanningLayout = () => {
   ];
 
   return (
-    <div className="flex h-full bg-white relative">
-      <div className="w-72 border-r border-gray-200 p-4 space-y-2 overflow-y-auto hidden md:block shrink-0 shadow-[2px_0_10px_rgba(0,0,0,0.02)] z-10 bg-white">
+    <div className="flex h-full bg-white relative z-0">
+      <div className="w-72 border-r border-gray-200 p-4 space-y-2 overflow-y-auto hidden md:block shrink-0 shadow-[2px_0_10px_rgba(0,0,0,0.02)] z-0 bg-white">
         {steps.map(step => {
           const isActive = activeStep === step.id;
           return (

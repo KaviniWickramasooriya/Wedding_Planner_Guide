@@ -3,10 +3,8 @@ import { LayoutDashboard, Calendar, Mail, FileText, Contact, LogOut } from 'luci
 import { useWedding } from '../../context/WeddingContext';
 
 export const Sidebar = ({ activeTab, setActiveTab }) => {
-  // Extract user, data (for dynamic event date), and the logout function from context
-  const { user, data, logout } = useWedding();
+  const { user, data, logout, analytics } = useWedding();
 
-  // Helper function to extract initials from the user's name dynamically
   const getInitials = (name) => {
     if (!name) return 'U';
     const parts = name.split(' ');
@@ -15,7 +13,9 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
   };
 
   const initials = getInitials(user?.name);
-  const eventDate = data?.eventInfo?.date || '2026-12-02';
+  const eventDate = data?.eventInfo?.date;
+  const completedCount = analytics?.completedCountVal || 0;
+  const progressPercentage = analytics?.progressPercentage || 0;
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between h-full shrink-0 z-20">
@@ -51,21 +51,18 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
       {/* Progress Card & Actions */}
       <div className="p-4 space-y-4">
         <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-          <div className="flex justify-between items-center text-sm font-medium mb-2">
+          <div className="flex justify-between items-center text-sm font-medium mb-1">
             <span className="flex items-center gap-1.5 text-gray-700"><Calendar size={14}/> Planning Progress</span>
-            <span className="text-slate-900 font-bold">100%</span>
+            <span className="text-slate-900 font-bold">{progressPercentage}%</span>
           </div>
+          <p className="text-[11px] text-gray-500 font-medium mb-2">{completedCount} of 6 tasks completed</p>
           <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div className="bg-slate-900 h-full w-full rounded-full"></div>
+            <div className="bg-slate-900 h-full rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
           </div>
-          <p className="text-xs text-gray-400 mt-3 font-medium">Event Date: {eventDate}</p>
+          {eventDate && <p className="text-xs text-gray-400 mt-3 font-medium">Event Date: {eventDate}</p>}
         </div>
 
         <div className="space-y-2">
-          <button className="w-full bg-purple-600 hover:bg-purple-700 transition-colors text-white font-semibold text-xs py-2.5 rounded-xl shadow-sm">
-            Online
-          </button>
-          {/* Logout Button */}
           <button 
             onClick={logout} 
             className="w-full flex items-center justify-center gap-2 bg-rose-50 hover:bg-rose-100 transition-colors text-rose-600 font-bold text-xs py-2.5 rounded-xl shadow-sm"

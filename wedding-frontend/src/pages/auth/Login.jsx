@@ -22,7 +22,7 @@ export const Login = ({ onSwitch }) => {
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-          <p className="text-sm text-gray-500 mt-2">Sign in to manage your wedding</p>
+          <p className="text-sm text-gray-500 mt-2">Sign in to manage your events</p>
         </div>
         {error && <div className="bg-rose-50 text-rose-600 p-3 rounded-lg text-sm mb-4">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">

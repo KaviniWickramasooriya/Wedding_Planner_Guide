@@ -1,15 +1,123 @@
 import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { Wallet, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
+import { Wallet, ChevronDown, ChevronUp, Plus, Trash2, UtensilsCrossed, CheckCircle2 } from 'lucide-react';
 
 export const BudgetMap = () => {
   const { data, updateData } = useWedding();
   const [expandedCat, setExpandedCat] = useState(null);
   
-  // Safe defaults without hardcoded names or amounts
-  const budget = data?.budget || { totalBudget: 0, categories: [] };
+  const completedSections = data?.completedSections || {};
+  const isCompleted = !!completedSections['budget'];
 
-  // Dynamically calculate metrics
+  const defaultCategories = [
+    {
+      name: "Plate Costs",
+      isPlateCost: true,
+      items: [
+        { name: "Full Plate Cost", cost: 0, payment: 0, balance: 0 },
+        { name: "Half Plate Cost", cost: 0, payment: 0, balance: 0 }
+      ]
+    },
+    { name: "Reception Hall", items: [
+      { name: "Reception Hall", cost: 0, payment: 0, balance: 0 },
+      { name: "Beverages handling fees", cost: 0, payment: 0, balance: 0 },
+      { name: "Other location charges", cost: 0, payment: 0, balance: 0 },
+      { name: "Seat covers/ Chairs", cost: 0, payment: 0, balance: 0 },
+      { name: "Tax & Service charges", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Wedding registration", items: [
+      { name: "Registrar Fee", cost: 0, payment: 0, balance: 0 },
+      { name: "Marriage Registration Fee", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Beauty Salon", items: [
+      { name: "Prewedding Pampering", cost: 0, payment: 0, balance: 0 },
+      { name: "Bride's Hair and makeup", cost: 0, payment: 0, balance: 0 },
+      { name: "Bride's Dressing", cost: 0, payment: 0, balance: 0 },
+      { name: "Bridesmaids'", cost: 0, payment: 0, balance: 0 },
+      { name: "Flower Girls'", cost: 0, payment: 0, balance: 0 },
+      { name: "Groom's Hair and makeup", cost: 0, payment: 0, balance: 0 },
+      { name: "Groom's Dressing", cost: 0, payment: 0, balance: 0 },
+      { name: "Groomsmen's", cost: 0, payment: 0, balance: 0 },
+      { name: "Flower Boys'", cost: 0, payment: 0, balance: 0 },
+      { name: "Bride's Going away", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Cultural Requirements", items: [
+      { name: "Astrologer", cost: 0, payment: 0, balance: 0 },
+      { name: "Ashtaka and Jayamangala gatha", cost: 0, payment: 0, balance: 0 },
+      { name: "Shashrika table", cost: 0, payment: 0, balance: 0 },
+      { name: "Traditional Dancing Group", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Photography", items: [
+      { name: "Pre-shoot", cost: 0, payment: 0, balance: 0 },
+      { name: "Wedding shoot", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Wedding Shoes", items: [
+      { name: "Bride's, Bridesmaids', Flower Girls', Groom, Groomsmen, Flower Boys', Bride's Going away, Groom's Going away", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Flowers Bouquets", items: [
+      { name: "Bride's Bouquets", cost: 0, payment: 0, balance: 0 },
+      { name: "Bridesmaids' Bouquets", cost: 0, payment: 0, balance: 0 },
+      { name: "Flower Girls Flowers", cost: 0, payment: 0, balance: 0 },
+      { name: "Groomsmen Boutonnieres, Groom's Boutonnieres", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Wedding Decoration", items: [
+      { name: "Wedding Decoration", cost: 0, payment: 0, balance: 0 },
+      { name: "Reception Hall Decor", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Entertainment", items: [
+      { name: "Band", cost: 0, payment: 0, balance: 0 },
+      { name: "Master of Ceremony (MC)", cost: 0, payment: 0, balance: 0 },
+      { name: "Dancing Group", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Jewelry", items: [
+      { name: "Bride's Ring, Bride's necklace", cost: 0, payment: 0, balance: 0 },
+      { name: "Groom's Ring, Brother's Ring (Gift)", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Stationary", items: [
+      { name: "Invitation cards", cost: 0, payment: 0, balance: 0 },
+      { name: "Wedding cake boxes, Other printing elements", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Wedding cakes", items: [
+      { name: "Wedding cake", cost: 0, payment: 0, balance: 0 },
+      { name: "Wedding cake pieces", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Transportation", items: [
+      { name: "Wedding Car", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Foods and beverages", items: [
+      { name: "Catering service", cost: 0, payment: 0, balance: 0 },
+      { name: "Liquor", cost: 0, payment: 0, balance: 0 },
+      { name: "Soft drinks, Bites", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Gifts", items: [
+      { name: "Bride's Mother", cost: 0, payment: 0, balance: 0 },
+      { name: "Bride's Father", cost: 0, payment: 0, balance: 0 },
+      { name: "Bride's Uncle", cost: 0, payment: 0, balance: 0 },
+      { name: "Groom's Mother", cost: 0, payment: 0, balance: 0 },
+      { name: "Groom's Father, Groom's Uncle", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Rental Items", items: [
+      { name: "Marquees and Lightings", cost: 0, payment: 0, balance: 0 },
+      { name: "Table Numbers", cost: 0, payment: 0, balance: 0 },
+      { name: "Table Clothes", cost: 0, payment: 0, balance: 0 },
+      { name: "Show Plates", cost: 0, payment: 0, balance: 0 },
+      { name: "Cutleries", cost: 0, payment: 0, balance: 0 },
+      { name: "Chairs, Guest Book", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Honey-moon", items: [
+      { name: "Shopping.", cost: 0, payment: 0, balance: 0 },
+      { name: "Transportation.", cost: 0, payment: 0, balance: 0 },
+      { name: "Foods and drinks.", cost: 0, payment: 0, balance: 0 },
+      { name: "Activities and tickets., Hotels & Resorts", cost: 0, payment: 0, balance: 0 }
+    ]},
+    { name: "Other", items: [] }
+  ];
+
+  const budget = data?.budget || { totalBudget: 0, categories: defaultCategories };
+  if (!budget.categories || budget.categories.length === 0) {
+    budget.categories = defaultCategories;
+  }
+
   let utilizedBudget = 0;
   let unpaidItems = 0;
   
@@ -27,11 +135,11 @@ export const BudgetMap = () => {
   const remainingPayment = Math.max(0, (Number(budget.totalBudget) || 0) - utilizedBudget);
 
   const handleUpdateTotal = (e) => {
-    updateData({ budget: { ...budget, totalBudget: Number(e.target.value) } });
+    updateData({ budget: { ...budget, totalBudget: Number(e.target.value) } }, true);
   };
 
   const handleUpdateItem = (catIdx, itemIdx, field, val) => {
-    const newCategories = [...budget.categories];
+    const newCategories = JSON.parse(JSON.stringify(budget.categories));
     const item = newCategories[catIdx].items[itemIdx];
     
     item[field] = field === 'name' ? val : Number(val);
@@ -41,20 +149,24 @@ export const BudgetMap = () => {
   };
 
   const handleAddItem = (catIdx) => {
-    const newCategories = [...budget.categories];
+    const newCategories = JSON.parse(JSON.stringify(budget.categories));
     newCategories[catIdx].items.push({ name: '', cost: 0, payment: 0, balance: 0 });
     updateData({ budget: { ...budget, categories: newCategories } });
   };
 
   const handleDeleteItem = (catIdx, itemIdx) => {
-    const newCategories = [...budget.categories];
+    const newCategories = JSON.parse(JSON.stringify(budget.categories));
     newCategories[catIdx].items.splice(itemIdx, 1);
     updateData({ budget: { ...budget, categories: newCategories } });
   };
 
+  const toggleCompleted = () => {
+    const newCompleted = { ...completedSections, budget: !isCompleted };
+    updateData({ completedSections: newCompleted }, true);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      {/* Header */}
       <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
         <div className="flex items-center gap-4">
           <Wallet size={24} className="text-gray-400" />
@@ -64,12 +176,20 @@ export const BudgetMap = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <button className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">Mark as completed</button>
+          <button 
+            onClick={toggleCompleted} 
+            className={`px-4 py-2 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              isCompleted 
+                ? 'bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600' 
+                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            <CheckCircle2 size={14}/> {isCompleted ? 'Completed' : 'Mark as completed'}
+          </button>
           <button className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">Export</button>
         </div>
       </div>
 
-      {/* Top Level Tracker */}
       <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
         <div className="flex justify-between items-center bg-blue-50/40 p-3 rounded-xl border border-blue-100">
           <div>
@@ -104,7 +224,6 @@ export const BudgetMap = () => {
         </div>
       </div>
 
-      {/* Category Accordions */}
       <div className="space-y-2">
         {budget.categories?.map((cat, idx) => {
           const isExpanded = expandedCat === cat.name;
@@ -117,7 +236,7 @@ export const BudgetMap = () => {
                 className="w-full flex justify-between p-4 hover:bg-gray-50 items-center"
               >
                 <div className="flex items-center gap-2">
-                  <Wallet size={16} className="text-emerald-500"/>
+                  {cat.isPlateCost ? <UtensilsCrossed size={16} className="text-emerald-500"/> : <Wallet size={16} className="text-emerald-500"/>}
                   <span className="font-bold text-sm text-gray-700">{cat.name || 'Unnamed Category'}</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -163,7 +282,7 @@ export const BudgetMap = () => {
                           className="col-span-2 border border-gray-200 rounded-lg p-2 text-xs bg-white text-right outline-none focus:border-blue-400" 
                         />
                         <div className="col-span-3 border border-transparent rounded-lg p-2 text-xs bg-gray-100 text-right font-bold text-gray-700">
-                          {(item.balance || 0).toLocaleString()}
+                          LKR {(item.balance || 0).toLocaleString()}
                         </div>
                       </div>
                     </div>
