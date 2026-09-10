@@ -16,6 +16,7 @@ const AppContent = () => {
   const { token } = useWedding();
   const [activeTab, setActiveTab] = useState('overview'); 
   const [authView, setAuthView] = useState('login'); 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (!token) {
     return authView === 'login' 
@@ -24,12 +25,20 @@ const AppContent = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-50 text-gray-800 font-sans overflow-hidden">
+    <div className="flex h-screen bg-gray-50 text-gray-800 font-sans overflow-hidden">
       <Toaster position="top-right" />
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Header onProfileClick={() => setActiveTab('profile')} />
-        <main className="flex-1 overflow-y-auto relative">
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isOpen={isSidebarOpen} 
+        setIsOpen={setIsSidebarOpen} 
+      />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+        <Header 
+          onProfileClick={() => setActiveTab('profile')} 
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
+        />
+        <main className="flex-1 overflow-y-auto relative p-4 md:p-6 bg-gray-50/50">
           {activeTab === 'overview' && <OverviewTab />}
           {activeTab === 'planning' && <PlanningLayout />}
           {activeTab === 'invite' && <InviteTab />}

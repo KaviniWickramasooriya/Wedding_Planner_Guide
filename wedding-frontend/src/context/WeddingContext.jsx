@@ -13,7 +13,6 @@ export const WeddingProvider = ({ children }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  // Helper function to build headers with token instantly
   const getAuthHeaders = () => {
     const currentToken = localStorage.getItem('token');
     return currentToken ? { Authorization: `Bearer ${currentToken}` } : {};
@@ -37,7 +36,6 @@ export const WeddingProvider = ({ children }) => {
       
       try {
         const headers = { Authorization: `Bearer ${currentToken}` };
-        
         const userRes = await axios.get(`${API_URL}/auth/user`, { headers });
         setUser(userRes.data);
         
@@ -48,12 +46,10 @@ export const WeddingProvider = ({ children }) => {
         }
       } catch (err) {
         if (err.response && err.response.status === 401) {
-          console.warn('Session expired or invalid token.');
           setToken(null);
           localStorage.removeItem('token');
         } else {
           console.error('Backend Server Error:', err.response?.data || err.message);
-          toast.error("Database error. Please check your backend connection.");
         }
       } finally {
         setLoading(false);
@@ -105,7 +101,6 @@ export const WeddingProvider = ({ children }) => {
       if(showToast) toast.success('Details Saved Successfully!');
     } catch (err) {
       if(showToast) toast.error('Failed to save details.');
-      console.error('Failed to sync state:', err);
     }
   }, [data, API_URL]);
 
@@ -158,15 +153,7 @@ export const WeddingProvider = ({ children }) => {
     let totalAdults = 0;
     let totalChildren = 0;
     let confirmedPax = 0;
-    const categoryCounts = {
-      "mother relative": 0,
-      "father relative": 0,
-      "family": 0,
-      "colleagues and office": 0,
-      "sibling guests": 0,
-      "friends": 0,
-      "other guests": 0
-    };
+    const categoryCounts = { "mother relative": 0, "father relative": 0, "family": 0, "colleagues and office": 0, "sibling guests": 0, "friends": 0, "other guests": 0 };
 
     data.guests?.forEach(g => {
       const adults = Number(g.adults) || 0;
@@ -227,31 +214,11 @@ export const WeddingProvider = ({ children }) => {
     const progressPercentage = Math.round((completedCountVal / totalSectionsCount) * 100);
 
     return { 
-      totalGuests, 
-      confirmedCount, 
-      invitedCount,
-      pendingCount,
-      maybeCount,
-      declinedCount,
-      brideSideCount,
-      groomSideCount,
-      totalPax,
-      totalAdults,
-      totalChildren,
-      confirmedPax,
-      categoryCounts,
-      budgetByCategory,
-      totalBudgetUsed, 
-      budgetPercentage, 
-      totalTables,
-      totalSeats,
-      allocatedSeats,
-      availableSeats,
-      seatUtilizationRate,
-      daysUntil,
-      completedSections,
-      completedCountVal,
-      progressPercentage
+      totalGuests, confirmedCount, invitedCount, pendingCount, maybeCount, declinedCount,
+      brideSideCount, groomSideCount, totalPax, totalAdults, totalChildren, confirmedPax,
+      categoryCounts, budgetByCategory, totalBudgetUsed, budgetPercentage, totalTables,
+      totalSeats, allocatedSeats, availableSeats, seatUtilizationRate, daysUntil,
+      completedSections, completedCountVal, progressPercentage
     };
   }, [data]);
 

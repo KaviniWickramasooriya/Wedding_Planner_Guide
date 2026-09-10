@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { LayoutDashboard, Calendar, Mail, FileText, Contact, LogOut, Menu, X } from 'lucide-react';
+import React from 'react';
+import { LayoutDashboard, Calendar, Mail, FileText, Contact, LogOut, X } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
 
-export const Sidebar = ({ activeTab, setActiveTab }) => {
+export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
   const { user, data, logout, analytics } = useWedding();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -20,32 +19,16 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
 
   const handleNavClick = (id) => {
     setActiveTab(id);
-    setIsMobileOpen(false);
+    setIsOpen(false);
   };
 
   return (
     <>
-      {/* Mobile Hamburger Header Bar */}
-      <div className="md:hidden flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center text-xs">
-            {initials}
-          </div>
-          <span className="font-bold text-sm text-gray-800">{user?.name || 'User'}</span>
-        </div>
-        <button 
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
-        >
-          {isMobileOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
-      </div>
-
       {/* Mobile Backdrop */}
-      {isMobileOpen && (
+      {isOpen && (
         <div 
-          onClick={() => setIsMobileOpen(false)}
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-2xs transition-opacity"
         ></div>
       )}
 
@@ -53,21 +36,29 @@ export const Sidebar = ({ activeTab, setActiveTab }) => {
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
         w-64 bg-white border-r border-gray-200 flex flex-col justify-between h-full shrink-0
-        transform transition-transform duration-300 ease-in-out
-        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        transform transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div>
-          {/* User Account Info */}
-          <div className="p-4 border-b border-gray-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center shrink-0">
-              {initials}
+          {/* User Account Info & Mobile Close */}
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 font-bold flex items-center justify-center shrink-0">
+                {initials}
+              </div>
+              <div className="overflow-hidden">
+                <h4 className="font-semibold text-sm text-gray-800 truncate" title={user?.name || 'Guest User'}>
+                  {user?.name || 'Guest User'}
+                </h4>
+                <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold uppercase">Free</span>
+              </div>
             </div>
-            <div className="overflow-hidden">
-              <h4 className="font-semibold text-sm text-gray-800 truncate" title={user?.name || 'Guest User'}>
-                {user?.name || 'Guest User'}
-              </h4>
-              <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold uppercase">Free</span>
-            </div>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="md:hidden p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
           </div>
 
           {/* Navigation */}

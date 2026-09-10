@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, Plus, Calendar, Trash2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Plus, Calendar, Trash2, Menu } from 'lucide-react';
 import { useWedding } from '../../context/WeddingContext';
 
-export const Header = ({ onProfileClick }) => {
+export const Header = ({ onProfileClick, onToggleSidebar }) => {
   const { data, events, activeEventId, setActiveEventId, createNewEvent, deleteEvent } = useWedding();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNewEventModalOpen, setIsNewEventModalOpen] = useState(false);
@@ -17,66 +17,76 @@ export const Header = ({ onProfileClick }) => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0 z-50 relative">
-      <div className="flex items-center gap-2 text-sm text-gray-500 font-medium relative">
-        <span>My Project</span>
-        <ChevronRight size={14} className="text-gray-400"/>
-        
-        {/* Event Type Selector Dropdown */}
-        <div className="relative">
-          <button 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs flex items-center gap-1.5 font-semibold hover:bg-rose-100 transition-colors"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> 
-            {data?.eventType || 'Wedding'}
-            <ChevronDown size={12} />
-          </button>
+    <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center justify-between shrink-0 z-30 relative">
+      <div className="flex items-center gap-3">
+        {/* Mobile Hamburger Menu Button */}
+        <button 
+          onClick={onToggleSidebar}
+          className="md:hidden p-1.5 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <Menu size={22} />
+        </button>
 
-          {isDropdownOpen && (
-            <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 py-2">
-              <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Switch / Manage Events</div>
-              {events.map(ev => (
-                <div 
-                  key={ev._id}
-                  className={`w-full px-4 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between group ${ev._id === activeEventId ? 'text-blue-600 bg-blue-50/50' : 'text-gray-700'}`}
-                >
-                  <button
-                    onClick={() => {
-                      setActiveEventId(ev._id);
-                      setIsDropdownOpen(false);
-                    }}
-                    className="flex-1 text-left flex items-center justify-between"
+        <div className="flex items-center gap-2 text-xs md:text-sm text-gray-500 font-medium relative">
+          <span className="hidden sm:inline">My Project</span>
+          <ChevronRight size={14} className="text-gray-400 hidden sm:inline"/>
+          
+          {/* Event Type Selector Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs flex items-center gap-1.5 font-semibold hover:bg-rose-100 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> 
+              {data?.eventType || 'Wedding'}
+              <ChevronDown size={12} />
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 py-2">
+                <div className="px-3 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Switch / Manage Events</div>
+                {events.map(ev => (
+                  <div 
+                    key={ev._id}
+                    className={`w-full px-4 py-2 text-xs font-semibold hover:bg-gray-50 flex items-center justify-between group ${ev._id === activeEventId ? 'text-blue-600 bg-blue-50/50' : 'text-gray-700'}`}
                   >
-                    <span>{ev.eventType || 'Wedding'}</span>
-                    {ev._id === activeEventId && <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>}
-                  </button>
-                  {events.length > 1 && (
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteEvent(ev._id);
+                    <button
+                      onClick={() => {
+                        setActiveEventId(ev._id);
+                        setIsDropdownOpen(false);
                       }}
-                      className="ml-2 text-gray-300 hover:text-rose-500 transition-colors p-1"
-                      title="Delete Event"
+                      className="flex-1 text-left flex items-center justify-between"
                     >
-                      <Trash2 size={13} />
+                      <span>{ev.eventType || 'Wedding'}</span>
+                      {ev._id === activeEventId && <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>}
                     </button>
-                  )}
-                </div>
-              ))}
-              <div className="border-t border-gray-100 my-1"></div>
-              <button
-                onClick={() => {
-                  setIsDropdownOpen(false);
-                  setIsNewEventModalOpen(true);
-                }}
-                className="w-full text-left px-4 py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 flex items-center gap-1.5"
-              >
-                <Plus size={14} /> Add New Event
-              </button>
-            </div>
-          )}
+                    {events.length > 1 && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteEvent(ev._id);
+                        }}
+                        className="ml-2 text-gray-300 hover:text-rose-500 transition-colors p-1"
+                        title="Delete Event"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <div className="border-t border-gray-100 my-1"></div>
+                <button
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    setIsNewEventModalOpen(true);
+                  }}
+                  className="w-full text-left px-4 py-2 text-xs font-bold text-blue-600 hover:bg-blue-50 flex items-center gap-1.5"
+                >
+                  <Plus size={14} /> Add New Event
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -88,8 +98,8 @@ export const Header = ({ onProfileClick }) => {
 
       {/* New Event Modal */}
       {isNewEventModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-96 shadow-2xl space-y-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-2xl space-y-4 animate-in fade-in duration-200">
             <h3 className="font-bold text-base text-gray-900 flex items-center gap-2">
               <Calendar size={18} className="text-blue-600"/> Create New Event
             </h3>
