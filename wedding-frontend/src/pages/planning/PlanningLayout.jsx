@@ -5,11 +5,12 @@ import { GuestMap } from './GuestMap';
 import { BudgetMap } from './BudgetMap';
 import { TimelineTab } from './TimelineTab';
 import { SeatingMap } from './SeatingMap';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const PlanningLayout = () => {
   const [activeStep, setActiveStep] = useState(1);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const steps = [
     { id: 1, title: 'Couple Details', desc: 'Basic information about the bride and groom' },
@@ -59,35 +60,52 @@ export const PlanningLayout = () => {
         </div>
       )}
 
-      {/* Desktop Sidebar Steps */}
-      <div className="w-72 border-r border-gray-200 p-4 space-y-2 overflow-y-auto hidden md:block shrink-0 shadow-[2px_0_10px_rgba(0,0,0,0.02)] z-0 bg-white">
-        {steps.map(step => {
-          const isActive = activeStep === step.id;
-          return (
-            <div
-              key={step.id}
-              onClick={() => setActiveStep(step.id)}
-              className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200 flex gap-3.5 ${
-                isActive ? 'border-blue-400 bg-blue-50/50 shadow-sm' : 'border-transparent hover:bg-gray-50'
-              }`}
-            >
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
-              }`}>
-                {step.id}
+      {/* Desktop Fixed-Width Collapsible Sidebar Steps */}
+      <div className={`border-r border-gray-200 p-3 space-y-2 overflow-y-auto hidden md:flex flex-col shrink-0 transition-all duration-300 bg-white relative ${isSidebarCollapsed ? 'w-20' : 'w-72'}`}>
+        {/* Collapse Toggle Button Positioned Properly */}
+        <div className="flex justify-end mb-2">
+          <button 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="bg-white border border-gray-200 rounded-full p-1.5 text-gray-500 hover:text-gray-900 shadow-sm z-10 flex items-center justify-center"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isSidebarCollapsed ? <ChevronRight size={14}/> : <ChevronLeft size={14}/>}
+          </button>
+        </div>
+
+        <div className="space-y-2 flex-1">
+          {steps.map(step => {
+            const isActive = activeStep === step.id;
+            return (
+              <div
+                key={step.id}
+                onClick={() => setActiveStep(step.id)}
+                title={isSidebarCollapsed ? step.title : ''}
+                className={`p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 flex items-center gap-3 ${
+                  isActive ? 'border-blue-400 bg-blue-50/50 shadow-sm' : 'border-transparent hover:bg-gray-50'
+                } ${isSidebarCollapsed ? 'justify-center' : ''}`}
+              >
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                  isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {step.id}
+                </div>
+                
+                {!isSidebarCollapsed && (
+                  <div className="overflow-hidden">
+                    <h5 className={`text-sm font-bold truncate ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>{step.title}</h5>
+                    <p className="text-[11px] text-gray-400 mt-0.5 truncate font-medium">{step.desc}</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <h5 className={`text-sm font-bold ${isActive ? 'text-gray-900' : 'text-gray-600'}`}>{step.title}</h5>
-                <p className="text-[11px] text-gray-400 mt-1 leading-relaxed font-medium">{step.desc}</p>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50/50">
-        <div className="max-w-4xl mx-auto h-full">
+        <div className="max-w-5xl mx-auto h-full">
           {activeStep === 1 && <CoupleDetails />}
           {activeStep === 2 && <EventInformation />}
           {activeStep === 3 && <GuestMap />}

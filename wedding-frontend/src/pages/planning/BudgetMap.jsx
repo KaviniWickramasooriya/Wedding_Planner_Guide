@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
 import { Wallet, ChevronDown, ChevronUp, Plus, Trash2, UtensilsCrossed, CheckCircle2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const BudgetMap = () => {
   const { data, updateData } = useWedding();
@@ -9,15 +10,43 @@ export const BudgetMap = () => {
   const completedSections = data?.completedSections || {};
   const isCompleted = !!completedSections['budget'];
 
+  // Calculate Lunch Plate Cost based ONLY on Confirmed guests and dynamic rates set in guest map
+  const guests = data?.guests || [];
+  let confirmedAdultsCount = 0;
+  let confirmedHalfCount = 0;
+
+  guests.forEach(g => {
+    if (g.rsvp === 'Confirmed') {
+      confirmedAdultsCount += Number(g.adults) || 0;
+      confirmedHalfCount += Number(g.half) || 0;
+    }
+  });
+
+  const plateRates = data?.plateRates || { fullRate: 0, halfRate: 0 };
+  const fullRateNum = Number(plateRates.fullRate) || 0;
+  const halfRateNum = Number(plateRates.halfRate) || 0;
+
+  const lunchFullPlateTotal = confirmedAdultsCount * fullRateNum;
+  const lunchHalfPlateTotal = confirmedHalfCount * halfRateNum;
+  const grandTotalLunchPlateCost = lunchFullPlateTotal + lunchHalfPlateTotal;
+
+  // Manual Morning Plate Cost State (manually entered pax, rate, amount)
+  const morningPlate = data?.morningPlate || { pax: 0, rate: 0, amount: 0 };
+
+  const handleMorningPlateChange = (field, value) => {
+    const val = Number(value) || 0;
+    const updated = { ...morningPlate, [field]: val };
+    
+    if (field === 'pax' || field === 'rate') {
+      const p = field === 'pax' ? val : (Number(morningPlate.pax) || 0);
+      const r = field === 'rate' ? val : (Number(morningPlate.rate) || 0);
+      updated.amount = p * r;
+    }
+
+    updateData({ morningPlate: updated }, true);
+  };
+
   const defaultCategories = [
-    {
-      name: "Plate Costs",
-      isPlateCost: true,
-      items: [
-        { name: "Full Plate Cost", cost: 0, payment: 0, balance: 0 },
-        { name: "Half Plate Cost", cost: 0, payment: 0, balance: 0 }
-      ]
-    },
     { name: "Reception Hall", items: [
       { name: "Reception Hall", cost: 0, payment: 0, balance: 0 },
       { name: "Beverages handling fees", cost: 0, payment: 0, balance: 0 },
@@ -118,6 +147,9 @@ export const BudgetMap = () => {
     budget.categories = defaultCategories;
   }
 
+  // Filter out legacy plate cost categories if present
+  budget.categories = budget.categories.filter(cat => cat.name !== "Plate Costs" && !cat.isPlateCost);
+
   let utilizedBudget = 0;
   let unpaidItems = 0;
   
@@ -160,13 +192,35 @@ export const BudgetMap = () => {
     updateData({ budget: { ...budget, categories: newCategories } });
   };
 
+  const handleDeleteCategory = (catIdx) => {
+    const catName = budget.categories[catIdx].name;
+    if (window.confirm(`Are you sure you want to delete the category "${catName}"?`)) {
+      const newCategories = budget.categories.filter((_, idx) => idx !== catIdx);
+      updateData({ budget: { ...budget, categories: newCategories } }, true);
+      toast.success(`Category "${catName}" deleted successfully!`);
+    }
+  };
+
+  const handleAddCustomCategory = () => {
+    const catName = prompt("Enter new budget category name:");
+    if (!catName || !catName.trim()) return;
+    const newCategories = JSON.parse(JSON.stringify(budget.categories));
+    if (newCategories.some(c => c.name.toLowerCase() === catName.trim().toLowerCase())) {
+      toast.error("Category already exists.");
+      return;
+    }
+    newCategories.push({ name: catName.trim(), items: [] });
+    updateData({ budget: { ...budget, categories: newCategories } }, true);
+    toast.success(`Category "${catName.trim()}" added successfully!`);
+  };
+
   const toggleCompleted = () => {
     const newCompleted = { ...completedSections, budget: !isCompleted };
     updateData({ completedSections: newCompleted }, true);
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20 max-w-7xl mx-auto">
       <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
         <div className="flex items-center gap-4">
           <Wallet size={24} className="text-gray-400" />
@@ -224,6 +278,106 @@ export const BudgetMap = () => {
         </div>
       </div>
 
+      {/* Lunch Plate Cost Calculator Section (Calculated with Confirmed Guests) */}
+      <div className="bg-white border border-emerald-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+        <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+          <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+            <UtensilsCrossed size={18}/> Lunch Plate Cost Summary (Confirmed Guests Only)
+          </div>
+          <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+            Total Lunch Plate Cost: LKR {grandTotalLunchPlateCost.toLocaleString()}
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-200">
+              <tr>
+                <th className="p-3">Plate Type</th>
+                <th className="p-3 text-center">Confirmed Pax</th>
+                <th className="p-3 text-right">Rate (LKR)</th>
+                <th className="p-3 text-right">Amount (LKR)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 font-medium">
+              <tr>
+                <td className="p-3 font-bold text-gray-800">Full Plate (Adults)</td>
+                <td className="p-3 text-center font-bold text-blue-600">{confirmedAdultsCount}</td>
+                <td className="p-3 text-right">{fullRateNum.toLocaleString()}</td>
+                <td className="p-3 text-right font-bold text-emerald-600">{lunchFullPlateTotal.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td className="p-3 font-bold text-gray-800">Half Plate (Children/Half)</td>
+                <td className="p-3 text-center font-bold text-blue-600">{confirmedHalfCount}</td>
+                <td className="p-3 text-right">{halfRateNum.toLocaleString()}</td>
+                <td className="p-3 text-right font-bold text-emerald-600">{lunchHalfPlateTotal.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Manual Morning Plate Cost Calculator Section */}
+      <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
+        <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+          <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+            <UtensilsCrossed size={18}/> Morning Plate Cost Calculator (Manual Entry)
+          </div>
+          <span className="text-xs font-extrabold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+            Total Morning Plate Amount: LKR {(Number(morningPlate.amount) || 0).toLocaleString()}
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-200">
+              <tr>
+                <th className="p-3">Description</th>
+                <th className="p-3 text-center w-36">Pax (Manual)</th>
+                <th className="p-3 text-right w-44">Rate (LKR)</th>
+                <th className="p-3 text-right w-44">Amount (LKR)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 font-medium">
+              <tr>
+                <td className="p-3 font-bold text-gray-800">Morning Plate / Breakfast</td>
+                <td className="p-3 text-center">
+                  <input 
+                    type="number"
+                    value={morningPlate.pax || ''}
+                    onChange={(e) => handleMorningPlateChange('pax', e.target.value)}
+                    placeholder="0"
+                    className="w-24 border border-gray-300 rounded-lg text-center py-1.5 bg-white outline-none font-bold"
+                  />
+                </td>
+                <td className="p-3 text-right">
+                  <input 
+                    type="number"
+                    value={morningPlate.rate || ''}
+                    onChange={(e) => handleMorningPlateChange('rate', e.target.value)}
+                    placeholder="0"
+                    className="w-32 border border-gray-300 rounded-lg text-right px-2 py-1.5 bg-white outline-none font-bold"
+                  />
+                </td>
+                <td className="p-3 text-right font-extrabold text-amber-700">
+                  {(Number(morningPlate.amount) || 0).toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pt-2">
+        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Expense Categories</h3>
+        <button 
+          onClick={handleAddCustomCategory}
+          className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+        >
+          <Plus size={14}/> Add Category
+        </button>
+      </div>
+
       <div className="space-y-2">
         {budget.categories?.map((cat, idx) => {
           const isExpanded = expandedCat === cat.name;
@@ -231,19 +385,31 @@ export const BudgetMap = () => {
 
           return (
             <div key={idx} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-              <button 
-                onClick={() => setExpandedCat(isExpanded ? null : cat.name)} 
-                className="w-full flex justify-between p-4 hover:bg-gray-50 items-center"
-              >
-                <div className="flex items-center gap-2">
-                  {cat.isPlateCost ? <UtensilsCrossed size={16} className="text-emerald-500"/> : <Wallet size={16} className="text-emerald-500"/>}
+              <div className="w-full flex justify-between p-4 hover:bg-gray-50 items-center">
+                <button 
+                  onClick={() => setExpandedCat(isExpanded ? null : cat.name)} 
+                  className="flex items-center gap-2 flex-1 text-left"
+                >
+                  <Wallet size={16} className="text-emerald-500"/>
                   <span className="font-bold text-sm text-gray-700">{cat.name || 'Unnamed Category'}</span>
-                </div>
+                </button>
                 <div className="flex items-center gap-3">
                   <span className="font-bold text-sm text-emerald-600">LKR {catTotal.toLocaleString()}</span>
-                  {isExpanded ? <ChevronUp size={16} className="text-gray-400"/> : <ChevronDown size={16} className="text-gray-400"/>}
+                  <button 
+                    onClick={() => handleDeleteCategory(idx)}
+                    className="text-gray-300 hover:text-rose-500 transition-colors p-1"
+                    title="Delete Category"
+                  >
+                    <Trash2 size={16}/>
+                  </button>
+                  <button 
+                    onClick={() => setExpandedCat(isExpanded ? null : cat.name)}
+                    className="text-gray-400"
+                  >
+                    {isExpanded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+                  </button>
                 </div>
-              </button>
+              </div>
 
               {isExpanded && (
                 <div className="p-4 bg-gray-50/50 border-t space-y-3">
