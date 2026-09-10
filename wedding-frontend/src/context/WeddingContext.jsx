@@ -11,14 +11,18 @@ export const WeddingProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = 'http://localhost:5000/api';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  // Helper function to build headers with token instantly
+  const getAuthHeaders = () => {
+    const currentToken = localStorage.getItem('token');
+    return currentToken ? { Authorization: `Bearer ${currentToken}` } : {};
+  };
 
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       localStorage.setItem('token', token);
     } else {
-      delete axios.defaults.headers.common['Authorization'];
       localStorage.removeItem('token');
     }
   }, [token]);
@@ -32,78 +36,84 @@ export const WeddingProvider = ({ children }) => {
       }
       
       try {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${currentToken}`;
-        const userRes = await axios.get(`${API_URL}/auth/user`);
+        const headers = { Authorization: `Bearer ${currentToken}` };
+        
+        const userRes = await axios.get(`${API_URL}/auth/user`, { headers });
         setUser(userRes.data);
         
-        const eventsRes = await axios.get(`${API_URL}/v1/wedding/events`);
+        const eventsRes = await axios.get(`${API_URL}/v1/wedding/events`, { headers });
         setEvents(eventsRes.data);
         if (eventsRes.data.length > 0) {
           setActiveEventId(eventsRes.data[0]._id);
         }
       } catch (err) {
         if (err.response && err.response.status === 401) {
-          console.warn('Session expired or invalid.');
+          console.warn('Session expired or invalid token.');
           setToken(null);
           localStorage.removeItem('token');
-          delete axios.defaults.headers.common['Authorization'];
         } else {
           console.error('Backend Server Error:', err.response?.data || err.message);
-          toast.error("Database error. Please check your backend terminal.");
+          toast.error("Database error. Please check your backend connection.");
         }
       } finally {
         setLoading(false);
       }
     };
     loadData();
-  }, [token]);
+  }, [token, API_URL]);
 
   const data = events.find(e => e._id === activeEventId) || events[0] || null;
 
   const login = async (email, password) => {
-    const config = { headers: { Authorization: '' } };
-    const res = await axios.post(`${API_URL}/auth/login`, { email, password }, config);
-    localStorage.setItem('token', res.data.token);
-    setToken(res.data.token);
+    const res = await axios.post(`${API_URL}/auth/login`, { email, password });
+    const newToken = res.data.token;
+    
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
     setUser(res.data.user);
     
-    // Fetch events immediately after login
-    const eventsRes = await axios.get(`${API_URL}/v1/wedding/events`);
+    const eventsRes = await axios.get(`${API_URL}/v1/wedding/events`, {
+      headers: { Authorization: `Bearer ${newToken}` }
+    });
     setEvents(eventsRes.data);
     if (eventsRes.data.length > 0) {
       setActiveEventId(eventsRes.data[0]._id);
     }
+    toast.success('Logged in successfully!');
   };
 
   const register = async (name, email, password, initialEventType = 'Wedding') => {
-    const config = { headers: { Authorization: '' } };
-    await axios.post(`${API_URL}/auth/register`, { name, email, password, initialEventType }, config);
+    await axios.post(`${API_URL}/auth/register`, { name, email, password, initialEventType });
   };
 
   const logout = () => {
     localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);
     setEvents([]);
     setActiveEventId(null);
+    toast.success('Logged out successfully.');
   };
 
   const updateData = useCallback(async (updatedFields, showToast = false) => {
     if (!data) return;
     setEvents(prev => prev.map(ev => ev._id === data._id ? { ...ev, ...updatedFields } : ev));
     try {
-      await axios.put(`${API_URL}/v1/wedding/update/${data._id}`, updatedFields);
+      await axios.put(`${API_URL}/v1/wedding/update/${data._id}`, updatedFields, {
+        headers: getAuthHeaders()
+      });
       if(showToast) toast.success('Details Saved Successfully!');
     } catch (err) {
       if(showToast) toast.error('Failed to save details.');
       console.error('Failed to sync state:', err);
     }
-  }, [data]);
+  }, [data, API_URL]);
 
   const createNewEvent = async (eventType) => {
     try {
-      const res = await axios.post(`${API_URL}/v1/wedding/events`, { eventType });
+      const res = await axios.post(`${API_URL}/v1/wedding/events`, { eventType }, {
+        headers: getAuthHeaders()
+      });
       setEvents(prev => [...prev, res.data]);
       setActiveEventId(res.data._id);
       toast.success(`Created new ${eventType} event successfully!`);
@@ -118,7 +128,9 @@ export const WeddingProvider = ({ children }) => {
       return;
     }
     try {
-      await axios.delete(`${API_URL}/v1/wedding/events/${eventId}`);
+      await axios.delete(`${API_URL}/v1/wedding/events/${eventId}`, {
+        headers: getAuthHeaders()
+      });
       const remaining = events.filter(e => e._id !== eventId);
       setEvents(remaining);
       if (activeEventId === eventId) {
