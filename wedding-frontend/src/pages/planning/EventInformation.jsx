@@ -61,27 +61,29 @@ export const EventInformation = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-24 max-w-7xl mx-auto p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm gap-4">
         <div className="flex items-center gap-4">
-          <MapPin size={24} className="text-gray-400" />
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+            <MapPin size={24} />
+          </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Event Information</h2>
-            <p className="text-sm text-gray-500 font-medium">Wedding date, venue, and ceremony details</p>
+            <h2 className="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Event Information</h2>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">Wedding date, venue, and ceremony details</p>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
           <button 
             onClick={toggleCompleted} 
-            className={`px-4 py-2 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+            className={`px-4 py-2.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
               isCompleted 
-                ? 'bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600' 
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 shadow-sm' 
+                : 'border-gray-200 text-gray-700 bg-white hover:bg-gray-50'
             }`}
           >
             <CheckCircle2 size={14}/> {isCompleted ? 'Completed' : 'Mark as completed'}
           </button>
-          <button onClick={handleSave} className="px-5 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors">Save Details</button>
+          <button onClick={handleSave} className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-sm">Save Details</button>
         </div>
       </div>
 
@@ -97,8 +99,8 @@ export const EventInformation = () => {
               <label className="text-xs font-semibold text-gray-700">Venue Name</label>
               {info.venueName && <CheckCircle2 size={14} className="text-emerald-500" />}
             </div>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500">
+            <div className="relative flex items-center">
+              <span className="absolute left-3.5 text-blue-500 pointer-events-none">
                 <MapPin size={16} />
               </span>
               <input 
@@ -106,7 +108,7 @@ export const EventInformation = () => {
                 value={info.venueName || ''} 
                 onChange={e => handleUpdate('venueName', e.target.value)} 
                 placeholder="Start typing a venue name..." 
-                className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium focus:border-blue-500" 
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-xs outline-none font-medium focus:border-blue-500 shadow-2xs" 
               />
             </div>
           </div>
@@ -115,7 +117,7 @@ export const EventInformation = () => {
             <select 
               value={info.venueType || 'Indoor'} 
               onChange={e => handleUpdate('venueType', e.target.value)} 
-              className="w-full p-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium bg-white focus:border-blue-500"
+              className="w-full p-3 border border-gray-200 rounded-xl text-xs outline-none font-medium bg-white focus:border-blue-500 shadow-2xs cursor-pointer"
             >
               <option value="Indoor">Indoor</option>
               <option value="Outdoor">Outdoor</option>
@@ -129,8 +131,8 @@ export const EventInformation = () => {
             <label className="text-xs font-semibold text-gray-700">Venue Address</label>
             {info.venueAddress && <CheckCircle2 size={14} className="text-emerald-500" />}
           </div>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500">
+          <div className="relative flex items-center">
+            <span className="absolute left-3.5 text-blue-500 pointer-events-none">
               <MapPin size={16} />
             </span>
             <input 
@@ -138,7 +140,7 @@ export const EventInformation = () => {
               value={info.venueAddress || ''} 
               onChange={e => handleUpdate('venueAddress', e.target.value)} 
               placeholder="Full venue address will appear here..." 
-              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium focus:border-blue-500" 
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-xs outline-none font-medium focus:border-blue-500 shadow-2xs" 
             />
           </div>
         </div>
@@ -148,8 +150,8 @@ export const EventInformation = () => {
             <label className="text-xs font-semibold text-gray-700">Hall Name</label>
             {info.hallName && <CheckCircle2 size={14} className="text-emerald-500" />}
           </div>
-          <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500">
+          <div className="relative flex items-center">
+            <span className="absolute left-3.5 text-blue-500 pointer-events-none">
               <MapPin size={16} />
             </span>
             <input 
@@ -157,7 +159,7 @@ export const EventInformation = () => {
               value={info.hallName || ''} 
               onChange={e => handleUpdate('hallName', e.target.value)} 
               placeholder="e.g. Eagle Hall" 
-              className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium focus:border-blue-500" 
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-xs outline-none font-medium focus:border-blue-500 shadow-2xs" 
             />
           </div>
         </div>
@@ -169,20 +171,18 @@ export const EventInformation = () => {
           <CalendarIcon size={18} className="text-blue-500"/> Event Details
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-1.5">
               <label className="text-xs font-semibold text-gray-700">Date <span className="text-rose-500">*</span></label>
               {info.date && <CheckCircle2 size={14} className="text-emerald-500" />}
             </div>
-            <div className="relative">
-              <input 
-                type="date" 
-                value={info.date || ''} 
-                onChange={e => handleUpdate('date', e.target.value)} 
-                className="w-full p-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium bg-white focus:border-blue-500" 
-              />
-            </div>
+            <input 
+              type="date" 
+              value={info.date || ''} 
+              onChange={e => handleUpdate('date', e.target.value)} 
+              className="w-full p-3 border border-gray-200 rounded-xl text-xs outline-none font-medium bg-white focus:border-blue-500 shadow-2xs" 
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -190,7 +190,7 @@ export const EventInformation = () => {
             <select 
               value={info.session || 'Morning'} 
               onChange={e => handleUpdate('session', e.target.value)} 
-              className="w-full p-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium bg-white focus:border-blue-500"
+              className="w-full p-3 border border-gray-200 rounded-xl text-xs outline-none font-medium bg-white focus:border-blue-500 shadow-2xs cursor-pointer"
             >
               <option value="Morning">Morning</option>
               <option value="Evening">Evening</option>
@@ -208,7 +208,7 @@ export const EventInformation = () => {
               value={info.startTime || ''} 
               onChange={e => handleUpdate('startTime', e.target.value)} 
               placeholder="09 : 30 AM" 
-              className="w-full p-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium focus:border-blue-500" 
+              className="w-full p-3 border border-gray-200 rounded-xl text-xs outline-none font-medium focus:border-blue-500 shadow-2xs" 
             />
           </div>
 
@@ -219,7 +219,7 @@ export const EventInformation = () => {
               value={info.endTime || ''} 
               onChange={e => handleUpdate('endTime', e.target.value)} 
               placeholder="e.g. 12:00 PM" 
-              className="w-full p-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium text-gray-400 focus:border-blue-500" 
+              className="w-full p-3 border border-gray-200 rounded-xl text-xs outline-none font-medium focus:border-blue-500 shadow-2xs" 
             />
           </div>
         </div>
@@ -233,24 +233,24 @@ export const EventInformation = () => {
 
         <div className="space-y-3">
           {(info.additionalDetails || []).map((item, index) => (
-            <div key={index} className="flex items-center gap-3">
+            <div key={index} className="flex flex-col sm:flex-row items-center gap-3">
               <input 
                 type="text" 
                 value={item.label || ''} 
                 onChange={e => handleUpdateAdditionalField(index, 'label', e.target.value)} 
                 placeholder="Field name (e.g., Music)" 
-                className="w-1/3 p-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium focus:border-blue-500" 
+                className="w-full sm:w-1/3 p-3 border border-gray-200 rounded-xl text-xs outline-none font-medium focus:border-blue-500 shadow-2xs" 
               />
               <input 
                 type="text" 
                 value={item.value || ''} 
                 onChange={e => handleUpdateAdditionalField(index, 'value', e.target.value)} 
                 placeholder="Description" 
-                className="flex-1 p-2.5 border border-gray-200 rounded-lg text-sm outline-none font-medium focus:border-blue-500" 
+                className="w-full sm:flex-1 p-3 border border-gray-200 rounded-xl text-xs outline-none font-medium focus:border-blue-500 shadow-2xs" 
               />
               <button 
                 onClick={() => handleDeleteAdditionalField(index)} 
-                className="p-2.5 border border-rose-200 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                className="w-full sm:w-auto p-3 border border-rose-200 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors flex items-center justify-center shrink-0"
               >
                 <Trash2 size={16} />
               </button>
@@ -259,7 +259,7 @@ export const EventInformation = () => {
 
           <button 
             onClick={handleAddAdditionalField}
-            className="w-full py-3 border border-dashed border-gray-300 rounded-xl text-xs font-bold text-gray-600 hover:border-blue-400 hover:text-blue-600 flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full py-3.5 border border-dashed border-gray-300 rounded-xl text-xs font-bold text-gray-600 hover:border-blue-400 hover:text-blue-600 flex items-center justify-center gap-1.5 transition-colors"
           >
             <Plus size={16} /> Add More Additional Information
           </button>

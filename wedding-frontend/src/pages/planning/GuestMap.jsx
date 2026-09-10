@@ -11,14 +11,12 @@ export const GuestMap = () => {
   const [halfRate, setHalfRate] = useState(data?.plateRates?.halfRate || '');
   const [newCategoryName, setNewCategoryName] = useState('');
 
-  // Track inline editing state for guest rows
   const [editingIndex, setEditingIndex] = useState(null);
   const [editForm, setEditForm] = useState({ title: 'Mr', firstName: '', lastName: '', phone: '', category: '', rsvp: 'Pending', adults: 1, half: 0, kids: 0 });
 
   const completedSections = data?.completedSections || {};
   const isCompleted = !!completedSections['guests'];
 
-  // Base/default categories merged with any custom ones stored in state/data
   const defaultCategories = [
     "Family",
     "Mother's Relative",
@@ -45,7 +43,6 @@ export const GuestMap = () => {
   };
 
   const handleDeleteCategory = (catTitle) => {
-    // Check if any guests belong to this category
     const hasGuests = guests.some(g => g.category === catTitle);
     if (hasGuests) {
       toast.error("Cannot delete category while guests are assigned to it.");
@@ -172,15 +169,15 @@ export const GuestMap = () => {
   const calculatedFullPlateTotalCost = (currentTotalAdults * fRateNum) + (currentTotalHalf * hRateNum);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-24 animate-in fade-in duration-300">
+    <div className="space-y-6 max-w-7xl mx-auto pb-24 animate-in fade-in duration-300 p-4 md:p-6">
       {/* Top Banner Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl shrink-0">
             <Users size={24} />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">Guests Management</h2>
+            <h2 className="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Guests Management</h2>
             <p className="text-xs text-gray-500 font-medium mt-0.5">Organize guest lists, headcounts, and RSVP responses</p>
           </div>
         </div>
@@ -219,8 +216,8 @@ export const GuestMap = () => {
       </div>
 
       {/* Main Container Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
-        <div className="flex justify-between items-center border-b border-gray-100 pb-4">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 md:p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-4 gap-2">
           <div>
             <h3 className="font-bold text-gray-900 text-base">{activeSide} Guest Statistics</h3>
             <p className="text-xs text-gray-400 mt-0.5">Total registered entries under this side</p>

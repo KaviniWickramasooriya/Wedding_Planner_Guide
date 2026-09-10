@@ -15,7 +15,7 @@ export const Login = ({ onSwitch }) => {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      toast.success('Logged in successfully!');
+      // Toast success is handled inside WeddingContext.login to prevent duplicates
     } catch (err) {
       const errMsg = err.response?.data?.message || 'Login failed';
       setError(errMsg);

@@ -10,7 +10,6 @@ export const BudgetMap = () => {
   const completedSections = data?.completedSections || {};
   const isCompleted = !!completedSections['budget'];
 
-  // Calculate Lunch Plate Cost based ONLY on Confirmed guests and dynamic rates set in guest map
   const guests = data?.guests || [];
   let confirmedAdultsCount = 0;
   let confirmedHalfCount = 0;
@@ -30,7 +29,6 @@ export const BudgetMap = () => {
   const lunchHalfPlateTotal = confirmedHalfCount * halfRateNum;
   const grandTotalLunchPlateCost = lunchFullPlateTotal + lunchHalfPlateTotal;
 
-  // Manual Morning Plate Cost State (manually entered pax, rate, amount)
   const morningPlate = data?.morningPlate || { pax: 0, rate: 0, amount: 0 };
 
   const handleMorningPlateChange = (field, value) => {
@@ -147,7 +145,6 @@ export const BudgetMap = () => {
     budget.categories = defaultCategories;
   }
 
-  // Filter out legacy plate cost categories if present
   budget.categories = budget.categories.filter(cat => cat.name !== "Plate Costs" && !cat.isPlateCost);
 
   let utilizedBudget = 0;
@@ -220,37 +217,39 @@ export const BudgetMap = () => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-20 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-24 max-w-7xl mx-auto p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm gap-4">
         <div className="flex items-center gap-4">
-          <Wallet size={24} className="text-gray-400" />
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+            <Wallet size={24} />
+          </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Budget</h2>
-            <p className="text-sm text-gray-500 font-medium">Enter the budget for the wedding</p>
+            <h2 className="text-lg md:text-xl font-extrabold text-gray-900 tracking-tight">Budget</h2>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">Enter the budget for the wedding</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
           <button 
             onClick={toggleCompleted} 
-            className={`px-4 py-2 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+            className={`px-4 py-2.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
               isCompleted 
-                ? 'bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600' 
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 shadow-sm' 
+                : 'border-gray-200 text-gray-700 bg-white hover:bg-gray-50'
             }`}
           >
             <CheckCircle2 size={14}/> {isCompleted ? 'Completed' : 'Mark as completed'}
           </button>
-          <button className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">Export</button>
+          <button className="px-4 py-2.5 border border-gray-200 bg-white rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-sm">Export</button>
         </div>
       </div>
 
       <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <div className="flex justify-between items-center bg-blue-50/40 p-3 rounded-xl border border-blue-100">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-blue-50/40 p-4 rounded-xl border border-blue-100 gap-3">
           <div>
-            <p className="text-xs font-bold text-blue-800">Set Your Wedding Budget</p>
-            <p className="text-[11px] text-blue-600/70">Setting a budget helps you track expenses and stay on target</p>
+            <p className="text-xs font-bold text-blue-900">Set Your Wedding Budget</p>
+            <p className="text-[11px] text-blue-600/80 font-medium mt-0.5">Setting a budget helps you track expenses and stay on target</p>
           </div>
-          <div className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-1.5 rounded-lg">
+          <div className="flex items-center gap-2 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-2xs w-full sm:w-auto justify-between sm:justify-start">
             <span className="text-xs font-bold text-gray-500">LKR</span>
             <input 
               type="number" 
@@ -262,35 +261,35 @@ export const BudgetMap = () => {
           </div>
         </div>
 
-        <div className="border-t pt-4 flex justify-between items-end text-xs">
-          <div>
+        <div className="border-t pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
             <p className="text-gray-400 font-semibold mb-1">Total Budget</p>
-            <p className="text-lg font-bold text-emerald-600">LKR {(budget.totalBudget || 0).toLocaleString()}</p>
+            <p className="text-base font-extrabold text-emerald-600">LKR {(budget.totalBudget || 0).toLocaleString()}</p>
           </div>
-          <div>
+          <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
             <p className="text-gray-400 font-semibold mb-1">Remaining Payment</p>
-            <p className="text-sm font-bold text-rose-500">LKR {remainingPayment.toLocaleString()}</p>
+            <p className="text-base font-extrabold text-rose-500">LKR {remainingPayment.toLocaleString()}</p>
           </div>
-          <div>
+          <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
             <p className="text-gray-400 font-semibold mb-1">Unpaid Items</p>
-            <p className="text-sm font-bold text-amber-600">{unpaidItems}</p>
+            <p className="text-base font-extrabold text-amber-600">{unpaidItems}</p>
           </div>
         </div>
       </div>
 
-      {/* Lunch Plate Cost Calculator Section (Calculated with Confirmed Guests) */}
-      <div className="bg-white border border-emerald-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
-        <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-          <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+      {/* Lunch Plate Cost Summary */}
+      <div className="bg-white border border-emerald-200 rounded-2xl overflow-hidden shadow-sm p-5 md:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-3 gap-2">
+          <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs md:text-sm">
             <UtensilsCrossed size={18}/> Lunch Plate Cost Summary (Confirmed Guests Only)
           </div>
-          <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+          <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
             Total Lunch Plate Cost: LKR {grandTotalLunchPlateCost.toLocaleString()}
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[500px]">
             <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-200">
               <tr>
                 <th className="p-3">Plate Type</th>
@@ -317,19 +316,19 @@ export const BudgetMap = () => {
         </div>
       </div>
 
-      {/* Manual Morning Plate Cost Calculator Section */}
-      <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm p-6 space-y-4">
-        <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-          <div className="flex items-center gap-2 text-amber-800 font-bold text-sm">
+      {/* Morning Plate Cost Calculator */}
+      <div className="bg-white border border-amber-200 rounded-2xl overflow-hidden shadow-sm p-5 md:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-3 gap-2">
+          <div className="flex items-center gap-2 text-amber-900 font-bold text-xs md:text-sm">
             <UtensilsCrossed size={18}/> Morning Plate Cost Calculator (Manual Entry)
           </div>
-          <span className="text-xs font-extrabold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+          <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100">
             Total Morning Plate Amount: LKR {(Number(morningPlate.amount) || 0).toLocaleString()}
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs min-w-[500px]">
             <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider border-b border-gray-200">
               <tr>
                 <th className="p-3">Description</th>
@@ -347,7 +346,7 @@ export const BudgetMap = () => {
                     value={morningPlate.pax || ''}
                     onChange={(e) => handleMorningPlateChange('pax', e.target.value)}
                     placeholder="0"
-                    className="w-24 border border-gray-300 rounded-lg text-center py-1.5 bg-white outline-none font-bold"
+                    className="w-24 border border-gray-200 rounded-xl text-center py-2 bg-gray-50 outline-none font-bold focus:bg-white"
                   />
                 </td>
                 <td className="p-3 text-right">
@@ -356,7 +355,7 @@ export const BudgetMap = () => {
                     value={morningPlate.rate || ''}
                     onChange={(e) => handleMorningPlateChange('rate', e.target.value)}
                     placeholder="0"
-                    className="w-32 border border-gray-300 rounded-lg text-right px-2 py-1.5 bg-white outline-none font-bold"
+                    className="w-32 border border-gray-200 rounded-xl text-right px-3 py-2 bg-gray-50 outline-none font-bold focus:bg-white"
                   />
                 </td>
                 <td className="p-3 text-right font-extrabold text-amber-700">
@@ -369,10 +368,10 @@ export const BudgetMap = () => {
       </div>
 
       <div className="flex justify-between items-center pt-2">
-        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Expense Categories</h3>
+        <h3 className="text-xs md:text-sm font-bold text-gray-800 uppercase tracking-wider">Expense Categories</h3>
         <button 
           onClick={handleAddCustomCategory}
-          className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+          className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm"
         >
           <Plus size={14}/> Add Category
         </button>
@@ -384,27 +383,27 @@ export const BudgetMap = () => {
           const catTotal = cat.items?.reduce((sum, i) => sum + (Number(i.cost) || 0), 0) || 0;
 
           return (
-            <div key={idx} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-              <div className="w-full flex justify-between p-4 hover:bg-gray-50 items-center">
+            <div key={idx} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+              <div className="w-full flex justify-between p-4 hover:bg-gray-50/60 items-center transition-colors">
                 <button 
                   onClick={() => setExpandedCat(isExpanded ? null : cat.name)} 
-                  className="flex items-center gap-2 flex-1 text-left"
+                  className="flex items-center gap-2.5 flex-1 text-left"
                 >
-                  <Wallet size={16} className="text-emerald-500"/>
-                  <span className="font-bold text-sm text-gray-700">{cat.name || 'Unnamed Category'}</span>
+                  <Wallet size={16} className="text-emerald-500 shrink-0"/>
+                  <span className="font-bold text-xs md:text-sm text-gray-800">{cat.name || 'Unnamed Category'}</span>
                 </button>
                 <div className="flex items-center gap-3">
-                  <span className="font-bold text-sm text-emerald-600">LKR {catTotal.toLocaleString()}</span>
+                  <span className="font-bold text-xs md:text-sm text-emerald-600">LKR {catTotal.toLocaleString()}</span>
                   <button 
                     onClick={() => handleDeleteCategory(idx)}
-                    className="text-gray-300 hover:text-rose-500 transition-colors p-1"
+                    className="text-gray-300 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50"
                     title="Delete Category"
                   >
                     <Trash2 size={16}/>
                   </button>
                   <button 
                     onClick={() => setExpandedCat(isExpanded ? null : cat.name)}
-                    className="text-gray-400"
+                    className="text-gray-400 p-1"
                   >
                     {isExpanded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
                   </button>
@@ -412,8 +411,8 @@ export const BudgetMap = () => {
               </div>
 
               {isExpanded && (
-                <div className="p-4 bg-gray-50/50 border-t space-y-3">
-                  <div className="grid grid-cols-12 gap-3 text-[11px] font-bold text-gray-400 px-6 uppercase tracking-wider">
+                <div className="p-4 bg-gray-50/50 border-t space-y-3 overflow-x-auto">
+                  <div className="grid grid-cols-12 gap-3 text-[10px] md:text-[11px] font-bold text-gray-400 px-6 uppercase tracking-wider min-w-[600px]">
                     <div className="col-span-5">Item</div>
                     <div className="col-span-2 text-right">Budget</div>
                     <div className="col-span-2 text-right">Payment</div>
@@ -421,9 +420,9 @@ export const BudgetMap = () => {
                   </div>
                   
                   {cat.items?.map((item, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <button onClick={() => handleDeleteItem(idx, i)}>
-                        <Trash2 size={16} className="text-gray-300 hover:text-rose-500 transition-colors"/>
+                    <div key={i} className="flex items-center gap-2 min-w-[600px]">
+                      <button onClick={() => handleDeleteItem(idx, i)} className="text-gray-300 hover:text-rose-600 p-1">
+                        <Trash2 size={15}/>
                       </button>
                       <div className="grid grid-cols-12 gap-3 flex-1">
                         <input 
@@ -431,23 +430,23 @@ export const BudgetMap = () => {
                           value={item.name || ''} 
                           onChange={(e) => handleUpdateItem(idx, i, 'name', e.target.value)}
                           placeholder="Item Name"
-                          className="col-span-5 border border-gray-200 rounded-lg p-2 text-xs bg-white outline-none focus:border-blue-400" 
+                          className="col-span-5 border border-gray-200 rounded-xl p-2.5 text-xs bg-white outline-none focus:border-blue-500 font-medium shadow-2xs" 
                         />
                         <input 
                           type="number" 
                           value={item.cost || ''} 
                           onChange={(e) => handleUpdateItem(idx, i, 'cost', e.target.value)}
                           placeholder="0"
-                          className="col-span-2 border border-gray-200 rounded-lg p-2 text-xs bg-white text-right outline-none focus:border-blue-400" 
+                          className="col-span-2 border border-gray-200 rounded-xl p-2.5 text-xs bg-white text-right outline-none focus:border-blue-500 font-medium shadow-2xs" 
                         />
                         <input 
                           type="number" 
                           value={item.payment || ''} 
                           onChange={(e) => handleUpdateItem(idx, i, 'payment', e.target.value)}
                           placeholder="0"
-                          className="col-span-2 border border-gray-200 rounded-lg p-2 text-xs bg-white text-right outline-none focus:border-blue-400" 
+                          className="col-span-2 border border-gray-200 rounded-xl p-2.5 text-xs bg-white text-right outline-none focus:border-blue-500 font-medium shadow-2xs" 
                         />
-                        <div className="col-span-3 border border-transparent rounded-lg p-2 text-xs bg-gray-100 text-right font-bold text-gray-700">
+                        <div className="col-span-3 border border-transparent rounded-xl p-2.5 text-xs bg-gray-100 text-right font-bold text-gray-700 flex items-center justify-end">
                           LKR {(item.balance || 0).toLocaleString()}
                         </div>
                       </div>
@@ -456,7 +455,7 @@ export const BudgetMap = () => {
                   
                   <button 
                     onClick={() => handleAddItem(idx)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-gray-800 pt-2 ml-7"
+                    className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 pt-2 ml-7"
                   >
                     <Plus size={14}/> Add item
                   </button>
