@@ -3,18 +3,21 @@ import { useWedding } from '../../context/WeddingContext';
 import toast from 'react-hot-toast';
 
 export const Register = ({ onSwitch }) => {
-  const { register, login } = useWedding();
+  const { register } = useWedding();
   const [form, setForm] = useState({ name: '', email: '', password: '', initialEventType: 'Wedding' });
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       await register(form.name, form.email, form.password, form.initialEventType);
-      await login(form.email, form.password);
-      toast.success('Account created successfully!');
+      toast.success('Account created successfully! Please sign in.');
+      onSwitch(); // Switch directly to the login page view
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const errMsg = err.response?.data?.message || 'Registration failed';
+      setError(errMsg);
+      toast.error(errMsg);
     }
   };
 
@@ -29,15 +32,15 @@ export const Register = ({ onSwitch }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-semibold text-gray-700">Full Name</label>
-            <input type="text" required onChange={e => setForm({...form, name: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
+            <input type="text" required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-700">Email Address</label>
-            <input type="email" required onChange={e => setForm({...form, email: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
+            <input type="email" required value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-700">Password</label>
-            <input type="password" required onChange={e => setForm({...form, password: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
+            <input type="password" required value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-700">First Event Type</label>

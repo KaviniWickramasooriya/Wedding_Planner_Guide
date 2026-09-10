@@ -9,11 +9,14 @@ export const Login = ({ onSwitch }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       await login(form.email, form.password);
       toast.success('Logged in successfully!');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      const errMsg = err.response?.data?.message || 'Login failed';
+      setError(errMsg);
+      toast.error(errMsg);
     }
   };
 
@@ -28,11 +31,11 @@ export const Login = ({ onSwitch }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-semibold text-gray-700">Email Address</label>
-            <input type="email" required onChange={e => setForm({...form, email: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
+            <input type="email" required value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-xs font-semibold text-gray-700">Password</label>
-            <input type="password" required onChange={e => setForm({...form, password: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
+            <input type="password" required value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full mt-1 border border-gray-200 rounded-lg p-3 text-sm outline-none focus:border-blue-500" />
           </div>
           <button type="submit" className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition-colors">Sign In</button>
         </form>
