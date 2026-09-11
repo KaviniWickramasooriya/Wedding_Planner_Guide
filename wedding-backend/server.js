@@ -3,11 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-// Initialize express app first
 const app = express();
 
 app.use(cors({
-  origin: ['https://wedding-planner-guide.vercel.app', 'http://localhost:3000'],
+  origin: [
+    'https://wedding-planner-guide.vercel.app', 
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ],
   credentials: true
 }));
 

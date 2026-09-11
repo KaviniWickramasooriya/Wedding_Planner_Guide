@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { Armchair, Palette, Plus, ChevronDown, ChevronUp, Trash2, CheckCircle2 } from 'lucide-react';
+import { Armchair, Plus, ChevronDown, ChevronUp, Trash2, CheckCircle2, UserCheck } from 'lucide-react';
 
 export const SeatingMap = () => {
   const { data, updateData } = useWedding();
@@ -53,6 +53,10 @@ export const SeatingMap = () => {
   const totalCapacity = tables.reduce((acc, t) => acc + (Number(t.capacity) || 0), 0);
   const totalAssigned = tables.reduce((acc, t) => acc + (t.assignedGuests?.filter(Boolean).length || 0), 0);
 
+  // Filter guests by side for the selector dropdown groups
+  const brideGuests = guests.filter(g => (g.side || "Bride's") === "Bride's");
+  const groomGuests = guests.filter(g => g.side === "Groom's");
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col pb-24 max-w-7xl mx-auto p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm shrink-0 gap-4">
@@ -75,9 +79,6 @@ export const SeatingMap = () => {
             }`}
           >
             <CheckCircle2 size={14}/> {isCompleted ? 'Completed' : 'Mark as completed'}
-          </button>
-          <button className="px-4 py-2.5 border border-gray-200 bg-white rounded-xl text-xs font-bold flex items-center gap-1.5 text-gray-700 hover:bg-gray-50 shadow-sm">
-            <Palette size={14}/> Design
           </button>
           <button onClick={handleAddTable} className="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 bg-slate-900 text-white hover:bg-slate-800 shadow-sm">
             <Plus size={14}/> Add Table
@@ -134,11 +135,20 @@ export const SeatingMap = () => {
                                 className="border border-gray-200 rounded-xl p-2 text-xs w-full outline-none focus:border-blue-500 bg-white shadow-2xs font-medium"
                               >
                                 <option value="">Select Guest</option>
-                                {guests.map((g, gIdx) => (
-                                  <option key={gIdx} value={`${g.firstName} ${g.lastName}`}>
-                                    {g.firstName} {g.lastName}
-                                  </option>
-                                ))}
+                                <optgroup label="Bride's Side">
+                                  {brideGuests.map((g, gIdx) => (
+                                    <option key={`bride-${gIdx}`} value={`${g.firstName} ${g.lastName}`}>
+                                      {g.firstName} {g.lastName} ({g.category || 'General'})
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Groom's Side">
+                                  {groomGuests.map((g, gIdx) => (
+                                    <option key={`groom-${gIdx}`} value={`${g.firstName} ${g.lastName}`}>
+                                      {g.firstName} {g.lastName} ({g.category || 'General'})
+                                    </option>
+                                  ))}
+                                </optgroup>
                               </select>
                             </div>
                           ))}
@@ -157,9 +167,11 @@ export const SeatingMap = () => {
             </div>
             
             <div className="lg:col-span-3 bg-white border border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center text-gray-500 min-h-[450px] shadow-sm space-y-4">
-              <Armchair size={48} className="text-gray-300"/>
-              <p className="text-sm font-semibold text-gray-800">Seating Visualizer Canvas</p>
-              <p className="text-xs text-gray-400">Total Tables: {tables.length} • Total Capacity: {totalCapacity} • Allocated Seats: {totalAssigned}</p>
+              <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl mb-2">
+                <UserCheck size={32} />
+              </div>
+              <p className="text-sm font-extrabold text-gray-900 tracking-tight">Seating Visualizer Canvas</p>
+              <p className="text-xs text-gray-500 font-medium">Total Tables: {tables.length} • Total Capacity: {totalCapacity} • Allocated Seats: {totalAssigned}</p>
             </div>
           </>
         )}
