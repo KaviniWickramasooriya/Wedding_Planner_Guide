@@ -61,9 +61,9 @@ export const PlanningLayout = () => {
       )}
 
       {/* Desktop Fixed-Width Collapsible Sidebar Steps */}
-      <div className={`border-r border-gray-200 p-3 space-y-2 overflow-y-auto hidden md:flex flex-col shrink-0 transition-all duration-300 bg-white relative ${isSidebarCollapsed ? 'w-20' : 'w-72'}`}>
-        {/* Collapse Toggle Button Positioned Properly */}
-        <div className="flex justify-end mb-2">
+      <div className={`border-r border-gray-200 p-3 hidden md:flex flex-col shrink-0 transition-all duration-300 bg-white relative h-full ${isSidebarCollapsed ? 'w-20' : 'w-72'}`}>
+        {/* Sticky Top Header with Collapse Toggle Button */}
+        <div className={`sticky top-0 bg-white z-10 pb-3 pt-1 flex items-center ${isSidebarCollapsed ? 'justify-center' : 'justify-end'}`}>
           <button 
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className="bg-white border border-gray-200 rounded-full p-1.5 text-gray-500 hover:text-gray-900 shadow-sm z-10 flex items-center justify-center"
@@ -73,7 +73,8 @@ export const PlanningLayout = () => {
           </button>
         </div>
 
-        <div className="space-y-2 flex-1">
+        {/* Scrollable Steps Container */}
+        <div className="space-y-2 flex-1 overflow-y-auto">
           {steps.map(step => {
             const isActive = activeStep === step.id;
             return (

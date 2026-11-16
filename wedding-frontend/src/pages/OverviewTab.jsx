@@ -6,9 +6,20 @@ export const OverviewTab = () => {
   const { analytics, data } = useWedding();
   const guests = data?.guests || [];
 
+  // Calculate days until event excluding both today and the wedding day itself (2026-12-02)
+  const weddingDateStr = data?.eventDetails?.date || '2026-12-02';
+  const todayObj = new Date();
+  todayObj.setHours(0, 0, 0, 0);
+  const weddingObj = new Date(weddingDateStr);
+  weddingObj.setHours(0, 0, 0, 0);
+  const diffTime = weddingObj - todayObj;
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  // Exclude today and the wedding day itself
+  const customDaysUntil = diffDays > 0 ? diffDays - 1 : (analytics.daysUntil !== undefined && analytics.daysUntil !== null ? Math.max(0, analytics.daysUntil - 1) : 'TBD');
+
   // Separate Bride's Side and Groom's Side guests
   const brideGuests = guests.filter(g => (g.side || "Bride's") === "Bride's");
-  const groomGuests = guests.filter(g => g.side === "Groom's");
+  const groomGuests = guests.filter(g => (g.side || "Groom's") === "Groom's");
 
   // Calculate Bride Side Metrics
   const brideEntries = brideGuests.length;
@@ -79,12 +90,13 @@ export const OverviewTab = () => {
   });
 
   const remainingPayment = Math.max(0, totalCostSum - totalPaymentSum);
+  const remainingBudget = totalBudget - totalCostSum;
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto pb-24 animate-in fade-in duration-500">
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard icon={Calendar} color="blue" label="Days Until Event" value={analytics.daysUntil ?? 'TBD'} />
+        <StatCard icon={Calendar} color="blue" label="Days Until Event" value={customDaysUntil} subtext="Excluding today & wedding day" />
         
         {/* Total Guests (Family Entries) Card */}
         <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
@@ -126,29 +138,41 @@ export const OverviewTab = () => {
         <h4 className="text-sm md:text-base font-bold text-gray-900 flex items-center gap-2">
           <DollarSign size={18} className="text-emerald-600" /> Financial Summary & Payment Tracker
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl space-y-1">
             <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5"><TrendingUp size={14}/> Total Budget</span>
             <p className="text-xl font-black text-emerald-900 mt-1">Rs. {totalBudget.toLocaleString()}</p>
             <span className="text-[11px] text-emerald-600/80 font-medium">Overall allocated budget limit</span>
           </div>
 
+          <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-xl space-y-1">
+            <span className="text-xs font-bold text-purple-700 flex items-center gap-1.5"><DollarSign size={14}/> Total Est. Cost</span>
+            <p className="text-xl font-black text-purple-900 mt-1">Rs. {totalCostSum.toLocaleString()}</p>
+            <span className="text-[11px] text-purple-600/80 font-medium">Cumulative items full amount cost</span>
+          </div>
+
           <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl space-y-1">
-            <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5"><CreditCard size={14}/> Total Did Payments</span>
+            <span className="text-xs font-bold text-blue-700 flex items-center gap-1.5"><CreditCard size={14}/> Total Paid (Did Payments)</span>
             <p className="text-xl font-black text-blue-900 mt-1">Rs. {totalPaymentSum.toLocaleString()}</p>
             <span className="text-[11px] text-blue-600/80 font-medium">Total settled vendor payments</span>
           </div>
 
           <div className="bg-amber-50/50 border border-amber-100 p-4 rounded-xl space-y-1">
-            <span className="text-xs font-bold text-amber-700 flex items-center gap-1.5"><AlertCircle size={14}/> Should Do Payment (Balances)</span>
+            <span className="text-xs font-bold text-amber-700 flex items-center gap-1.5"><AlertCircle size={14}/> Balance to Pay</span>
             <p className="text-xl font-black text-amber-900 mt-1">Rs. {remainingPayment.toLocaleString()}</p>
             <span className="text-[11px] text-amber-600/80 font-medium">Pending balance to be cleared</span>
           </div>
 
-          <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-xl space-y-1">
-            <span className="text-xs font-bold text-purple-700 flex items-center gap-1.5"><DollarSign size={14}/> Full Amount (Total Cost)</span>
-            <p className="text-xl font-black text-purple-900 mt-1">Rs. {totalCostSum.toLocaleString()}</p>
-            <span className="text-[11px] text-purple-600/80 font-medium">Cumulative items full amount cost</span>
+          <div className={`${remainingBudget >= 0 ? 'bg-teal-50/60 border-teal-100' : 'bg-red-50/60 border-red-100'} p-4 rounded-xl space-y-1`}>
+            <span className={`text-xs font-bold ${remainingBudget >= 0 ? 'text-teal-700' : 'text-red-700'} flex items-center gap-1.5`}>
+              <DollarSign size={14}/> {remainingBudget >= 0 ? 'Budget Surplus' : 'Over Budget'}
+            </span>
+            <p className={`text-xl font-black ${remainingBudget >= 0 ? 'text-teal-900' : 'text-red-900'} mt-1`}>
+              Rs. {Math.abs(remainingBudget).toLocaleString()}
+            </p>
+            <span className={`text-[11px] ${remainingBudget >= 0 ? 'text-teal-600/80' : 'text-red-600/80'} font-medium`}>
+              {remainingBudget >= 0 ? 'Remaining unused budget' : 'Amount exceeding budget limit'}
+            </span>
           </div>
         </div>
       </div>
