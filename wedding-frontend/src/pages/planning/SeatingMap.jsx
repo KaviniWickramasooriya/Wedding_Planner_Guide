@@ -188,6 +188,11 @@ export const SeatingMap = () => {
   const brideCategories = getCategoriesGrouped(brideConfirmed);
   const groomCategories = getCategoriesGrouped(groomConfirmed);
 
+  // Dynamically sort tables by natural numeric order (e.g. Table 1, Table 2, Table 10) based on their names
+  const sortedTables = [...tables].sort((a, b) => 
+    a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+  );
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 h-full flex flex-col pb-24 max-w-7xl mx-auto p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm shrink-0 gap-4">
@@ -218,7 +223,7 @@ export const SeatingMap = () => {
       </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {tables.length === 0 ? (
+        {sortedTables.length === 0 ? (
           <div className="lg:col-span-12 flex items-center justify-center bg-white border border-dashed border-gray-300 rounded-2xl p-16 text-gray-400 font-medium shadow-sm">
              No tables added yet. Click "Add Table (10 Pax)" to begin.
           </div>
@@ -226,7 +231,7 @@ export const SeatingMap = () => {
           <>
             {/* Left Sidebar Table List Column */}
             <div className="lg:col-span-4 space-y-4">
-              {tables.map((table) => {
+              {sortedTables.map((table) => {
                 const isExpanded = expandedTableId === table.id;
                 const tableTotalPax = (table.assignedGuests || []).reduce((sum, gName) => sum + (gName ? getGuestPaxCount(gName) : 0), 0);
                 const isEditing = editingTableId === table.id;
@@ -354,7 +359,7 @@ export const SeatingMap = () => {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-4 gap-3">
                 <div className="flex items-center gap-2">
                   <LayoutGrid size={18} className="text-indigo-600 shrink-0" />
-                  <h3 className="font-bold text-gray-900 text-sm">Seating Visualizer Tables ({tables.length})</h3>
+                  <h3 className="font-bold text-gray-900 text-sm">Seating Visualizer Tables ({sortedTables.length})</h3>
                 </div>
                 <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 whitespace-nowrap">
                   {totalAssignedPax} / {totalCapacity} Total Pax Allocated
@@ -363,7 +368,7 @@ export const SeatingMap = () => {
 
               {/* Stack Tables Vertically ("down in down") */}
               <div className="flex flex-col gap-6 max-h-[700px] overflow-y-auto pr-2">
-                {tables.map(table => {
+                {sortedTables.map(table => {
                   const assignedList = table.assignedGuests || [];
                   const tableTotalPax = assignedList.reduce((sum, gName) => sum + (gName ? getGuestPaxCount(gName) : 0), 0);
 

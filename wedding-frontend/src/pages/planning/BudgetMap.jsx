@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWedding } from '../../context/WeddingContext';
-import { Wallet, ChevronDown, ChevronUp, Plus, Trash2, UtensilsCrossed, CheckCircle2 } from 'lucide-react';
+import { Wallet, ChevronDown, ChevronUp, Plus, Trash2, UtensilsCrossed, CheckCircle2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const BudgetMap = () => {
@@ -9,6 +9,18 @@ export const BudgetMap = () => {
   
   const completedSections = data?.completedSections || {};
   const isCompleted = !!completedSections['budget'];
+
+  // Local state for morning plate to ensure persistence after refresh
+  const [morningPax, setMorningPax] = useState(data?.morningPlate?.pax || '');
+  const [morningRate, setMorningRate] = useState(data?.morningPlate?.rate || '');
+
+  // Sync morning plate data from backend after page refresh/async load
+  useEffect(() => {
+    if (data?.morningPlate) {
+      setMorningPax(data.morningPlate.pax || '');
+      setMorningRate(data.morningPlate.rate || '');
+    }
+  }, [data?.morningPlate]);
 
   const guests = data?.guests || [];
   let confirmedAdultsCount = 0;
@@ -25,23 +37,28 @@ export const BudgetMap = () => {
   const fullRateNum = Number(plateRates.fullRate) || 0;
   const halfRateNum = Number(plateRates.halfRate) || 0;
 
+  // Lunch Costs
   const lunchFullPlateTotal = confirmedAdultsCount * fullRateNum;
   const lunchHalfPlateTotal = confirmedHalfCount * halfRateNum;
   const grandTotalLunchPlateCost = lunchFullPlateTotal + lunchHalfPlateTotal;
 
-  const morningPlate = data?.morningPlate || { pax: 0, rate: 0, amount: 0 };
+  // Morning Costs
+  const morningPaxNum = Number(morningPax) || 0;
+  const morningRateNum = Number(morningRate) || 0;
+  const morningPlateTotal = morningPaxNum * morningRateNum;
 
-  const handleMorningPlateChange = (field, value) => {
-    const val = Number(value) || 0;
-    const updated = { ...morningPlate, [field]: val };
-    
-    if (field === 'pax' || field === 'rate') {
-      const p = field === 'pax' ? val : (Number(morningPlate.pax) || 0);
-      const r = field === 'rate' ? val : (Number(morningPlate.rate) || 0);
-      updated.amount = p * r;
-    }
+  // Combined Total for reference display
+  const grandTotalAllPlates = grandTotalLunchPlateCost + morningPlateTotal;
 
-    updateData({ morningPlate: updated }, true);
+  const handleSaveMorningPlate = () => {
+    updateData({ 
+      morningPlate: { 
+        pax: morningPaxNum, 
+        rate: morningRateNum, 
+        amount: morningPlateTotal 
+      } 
+    }, true);
+    toast.success("Morning plate costs saved successfully!");
   };
 
   const defaultCategories = [
@@ -147,21 +164,20 @@ export const BudgetMap = () => {
 
   budget.categories = budget.categories.filter(cat => cat.name !== "Plate Costs" && !cat.isPlateCost);
 
-  let utilizedBudget = 0;
-  let unpaidItems = 0;
+  // Advanced Budget Calculations (Using category item totals without duplicate plate addition)
+  let totalItemsCost = 0;
+  let totalPaid = 0;
   
   budget.categories?.forEach(cat => {
     cat.items?.forEach(item => {
-      const cost = Number(item.cost) || 0;
-      const payment = Number(item.payment) || 0;
-      utilizedBudget += cost;
-      if (cost > payment) {
-        unpaidItems += 1;
-      }
+      totalItemsCost += (Number(item.cost) || 0);
+      totalPaid += (Number(item.payment) || 0);
     });
   });
 
-  const remainingPayment = Math.max(0, (Number(budget.totalBudget) || 0) - utilizedBudget);
+  const totalEstimatedCost = totalItemsCost; // Without automatic plate cost stacking since plates are entered in categories
+  const balanceToPay = totalEstimatedCost - totalPaid;
+  const remainingBudget = (Number(budget.totalBudget) || 0) - totalEstimatedCost;
 
   const handleUpdateTotal = (e) => {
     updateData({ budget: { ...budget, totalBudget: Number(e.target.value) } }, true);
@@ -218,6 +234,7 @@ export const BudgetMap = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-24 max-w-7xl mx-auto p-4 md:p-6">
+      {/* Top Banner Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-5 rounded-2xl border border-gray-200 shadow-sm gap-4">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
@@ -243,37 +260,69 @@ export const BudgetMap = () => {
         </div>
       </div>
 
-      <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-blue-50/40 p-4 rounded-xl border border-blue-100 gap-3">
+      {/* Main Budget Input and 5-Column Summary Dashboard */}
+      <div className="bg-white p-5 md:p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 gap-4">
           <div>
-            <p className="text-xs font-bold text-blue-900">Set Your Wedding Budget</p>
-            <p className="text-[11px] text-blue-600/80 font-medium mt-0.5">Setting a budget helps you track expenses and stay on target</p>
+            <p className="text-sm font-extrabold text-indigo-900">Set Your Wedding Budget</p>
+            <p className="text-xs text-indigo-700/80 font-medium mt-1">Setting a budget helps you track expenses and stay on target</p>
           </div>
-          <div className="flex items-center gap-2 bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-2xs w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center gap-2 bg-white border border-indigo-200 px-4 py-2.5 rounded-xl shadow-sm w-full sm:w-auto">
             <span className="text-xs font-bold text-gray-500">LKR</span>
             <input 
               type="number" 
               value={budget.totalBudget || ''} 
               onChange={handleUpdateTotal}
               placeholder="0"
-              className="w-28 outline-none text-right font-bold text-xs" 
+              className="w-32 outline-none text-right font-black text-sm text-indigo-950 bg-transparent" 
             />
           </div>
         </div>
 
-        <div className="border-t pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-            <p className="text-gray-400 font-semibold mb-1">Total Budget</p>
-            <p className="text-base font-extrabold text-emerald-600">LKR {(budget.totalBudget || 0).toLocaleString()}</p>
+        {/* 5-Column Accurate Metric Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+          <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100/80 flex flex-col justify-center">
+            <p className="text-blue-600/80 font-bold mb-1 uppercase tracking-wider text-[10px]">Total Budget</p>
+            <p className="text-lg font-black text-blue-700">LKR {(Number(budget.totalBudget) || 0).toLocaleString()}</p>
           </div>
-          <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-            <p className="text-gray-400 font-semibold mb-1">Remaining Payment</p>
-            <p className="text-base font-extrabold text-rose-500">LKR {remainingPayment.toLocaleString()}</p>
+          
+          <div className="bg-purple-50/60 p-4 rounded-xl border border-purple-100/80 flex flex-col justify-center">
+            <p className="text-purple-600/80 font-bold mb-1 uppercase tracking-wider text-[10px]">Total Est. Cost</p>
+            <p className="text-lg font-black text-purple-700">LKR {totalEstimatedCost.toLocaleString()}</p>
           </div>
-          <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-            <p className="text-gray-400 font-semibold mb-1">Unpaid Items</p>
-            <p className="text-base font-extrabold text-amber-600">{unpaidItems}</p>
+          
+          <div className="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100/80 flex flex-col justify-center">
+            <p className="text-emerald-600/80 font-bold mb-1 uppercase tracking-wider text-[10px]">Total Paid</p>
+            <p className="text-lg font-black text-emerald-700">LKR {totalPaid.toLocaleString()}</p>
           </div>
+          
+          <div className="bg-rose-50/60 p-4 rounded-xl border border-rose-100/80 flex flex-col justify-center">
+            <p className="text-rose-600/80 font-bold mb-1 uppercase tracking-wider text-[10px]">Balance to Pay</p>
+            <p className="text-lg font-black text-rose-700">LKR {balanceToPay.toLocaleString()}</p>
+          </div>
+          
+          <div className={`${remainingBudget >= 0 ? 'bg-teal-50/60 border-teal-100/80' : 'bg-red-50/60 border-red-100/80'} p-4 rounded-xl border flex flex-col justify-center`}>
+            <p className={`${remainingBudget >= 0 ? 'text-teal-600/80' : 'text-red-600/80'} font-bold mb-1 uppercase tracking-wider text-[10px]`}>
+              {remainingBudget >= 0 ? 'Budget Surplus' : 'Over Budget'}
+            </p>
+            <p className={`text-lg font-black ${remainingBudget >= 0 ? 'text-teal-700' : 'text-red-700'}`}>
+              LKR {Math.abs(remainingBudget).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* --- ALL PLATE COSTS COMBINED MASTER BANNER --- */}
+      <div className="bg-slate-900 text-white rounded-2xl shadow-sm p-5 md:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border border-slate-800">
+        <div>
+          <h3 className="font-extrabold text-sm md:text-base text-slate-100">Total Food & Beverage Plate Costs</h3>
+          <p className="text-[11px] text-slate-400 mt-1">Combined total of Morning Plate and Lunch Plate amounts (tracked in categories)</p>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 px-6 py-3 rounded-xl flex flex-col items-end">
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Grand Total Plates</span>
+          <span className="text-lg md:text-xl font-black text-emerald-400">
+            LKR {grandTotalAllPlates.toLocaleString()}
+          </span>
         </div>
       </div>
 
@@ -281,10 +330,10 @@ export const BudgetMap = () => {
       <div className="bg-white border border-emerald-200 rounded-2xl overflow-hidden shadow-sm p-5 md:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-100 pb-3 gap-2">
           <div className="flex items-center gap-2 text-emerald-900 font-bold text-xs md:text-sm">
-            <UtensilsCrossed size={18}/> Lunch Plate Cost Summary (Confirmed Guests Only)
+            <UtensilsCrossed size={18}/> Lunch Plate Cost Summary (Confirmed Guests)
           </div>
           <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100">
-            Total Lunch Plate Cost: LKR {grandTotalLunchPlateCost.toLocaleString()}
+            Lunch Total: LKR {grandTotalLunchPlateCost.toLocaleString()}
           </span>
         </div>
 
@@ -323,7 +372,7 @@ export const BudgetMap = () => {
             <UtensilsCrossed size={18}/> Morning Plate Cost Calculator (Manual Entry)
           </div>
           <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-100">
-            Total Morning Plate Amount: LKR {(Number(morningPlate.amount) || 0).toLocaleString()}
+            Morning Total: LKR {morningPlateTotal.toLocaleString()}
           </span>
         </div>
 
@@ -335,6 +384,7 @@ export const BudgetMap = () => {
                 <th className="p-3 text-center w-36">Pax (Manual)</th>
                 <th className="p-3 text-right w-44">Rate (LKR)</th>
                 <th className="p-3 text-right w-44">Amount (LKR)</th>
+                <th className="p-3 text-center w-24">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 font-medium">
@@ -343,23 +393,31 @@ export const BudgetMap = () => {
                 <td className="p-3 text-center">
                   <input 
                     type="number"
-                    value={morningPlate.pax || ''}
-                    onChange={(e) => handleMorningPlateChange('pax', e.target.value)}
+                    value={morningPax}
+                    onChange={(e) => setMorningPax(e.target.value)}
                     placeholder="0"
-                    className="w-24 border border-gray-200 rounded-xl text-center py-2 bg-gray-50 outline-none font-bold focus:bg-white"
+                    className="w-24 border border-gray-200 rounded-xl text-center py-2 bg-gray-50 outline-none font-bold focus:bg-white focus:border-amber-400"
                   />
                 </td>
                 <td className="p-3 text-right">
                   <input 
                     type="number"
-                    value={morningPlate.rate || ''}
-                    onChange={(e) => handleMorningPlateChange('rate', e.target.value)}
+                    value={morningRate}
+                    onChange={(e) => setMorningRate(e.target.value)}
                     placeholder="0"
-                    className="w-32 border border-gray-200 rounded-xl text-right px-3 py-2 bg-gray-50 outline-none font-bold focus:bg-white"
+                    className="w-32 border border-gray-200 rounded-xl text-right px-3 py-2 bg-gray-50 outline-none font-bold focus:bg-white focus:border-amber-400"
                   />
                 </td>
                 <td className="p-3 text-right font-extrabold text-amber-700">
-                  {(Number(morningPlate.amount) || 0).toLocaleString()}
+                  {morningPlateTotal.toLocaleString()}
+                </td>
+                <td className="p-3 text-center">
+                  <button 
+                    onClick={handleSaveMorningPlate}
+                    className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 w-full"
+                  >
+                    <Save size={13}/> Save
+                  </button>
                 </td>
               </tr>
             </tbody>
