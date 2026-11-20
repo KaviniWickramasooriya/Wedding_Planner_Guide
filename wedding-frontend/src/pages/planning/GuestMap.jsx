@@ -167,8 +167,9 @@ export const GuestMap = () => {
   const fRateNum = Number(fullRate) || 0;
   const hRateNum = Number(halfRate) || 0;
 
+  // Cost calculation strictly factors: Adult at Adult Rate, Half at Half Rate, Kids at 0
   const calcStats = (guestList) => {
-    const init = { entries: 0, pax: 0, cost: 0 };
+    const init = { entries: 0, pax: 0, adults: 0, half: 0, kids: 0, cost: 0 };
     const s = { 
       Total: { ...init }, 
       Confirmed: { ...init }, 
@@ -182,16 +183,22 @@ export const GuestMap = () => {
       const half = Number(g.half) || 0;
       const kids = Number(g.kids) || 0;
       const totalPax = adults + half + kids;
-      const cost = (adults * fRateNum) + (half * hRateNum);
+      const cost = (adults * fRateNum) + (half * hRateNum); // Kids plate cost is 0
       const rsvpStatus = g.rsvp || 'Pending';
 
       s.Total.entries += 1;
       s.Total.pax += totalPax;
+      s.Total.adults += adults;
+      s.Total.half += half;
+      s.Total.kids += kids;
       s.Total.cost += cost;
 
       if (s[rsvpStatus]) {
         s[rsvpStatus].entries += 1;
         s[rsvpStatus].pax += totalPax;
+        s[rsvpStatus].adults += adults;
+        s[rsvpStatus].half += half;
+        s[rsvpStatus].kids += kids;
         s[rsvpStatus].cost += cost;
       }
     });
@@ -201,6 +208,87 @@ export const GuestMap = () => {
   const allStats = calcStats(guests);
   const brideStats = calcStats(guests.filter(g => (g.side || "Bride's") === "Bride's"));
   const groomStats = calcStats(guests.filter(g => g.side === "Groom's"));
+
+  const sumGuestBreakdown = (list) => {
+    const adults = list.reduce((sum, g) => sum + (Number(g.adults) || 0), 0);
+    const half = list.reduce((sum, g) => sum + (Number(g.half) || 0), 0);
+    const kids = list.reduce((sum, g) => sum + (Number(g.kids) || 0), 0);
+    return {
+      families: list.length,
+      adults,
+      half,
+      kids,
+      pax: adults + half + kids
+    };
+  };
+
+  const statCardsConfig = [
+    {
+      key: 'Total',
+      label: 'Grand Total',
+      cardClass: 'bg-blue-50/50 border-blue-100',
+      labelClass: 'text-blue-600',
+      badgeClass: 'bg-blue-100/60 text-blue-700',
+      paxClass: 'text-blue-900',
+      subClass: 'text-blue-700',
+      famClass: 'text-blue-600/70',
+      dividerClass: 'border-blue-200/40',
+      sideTextClass: 'text-blue-800',
+      sideLabelClass: 'text-blue-600/60'
+    },
+    {
+      key: 'Confirmed',
+      label: 'Confirmed',
+      cardClass: 'bg-emerald-50/50 border-emerald-100',
+      labelClass: 'text-emerald-600',
+      badgeClass: 'bg-emerald-100/60 text-emerald-700',
+      paxClass: 'text-emerald-900',
+      subClass: 'text-emerald-700',
+      famClass: 'text-emerald-600/70',
+      dividerClass: 'border-emerald-200/40',
+      sideTextClass: 'text-emerald-800',
+      sideLabelClass: 'text-emerald-600/60'
+    },
+    {
+      key: 'Pending',
+      label: 'Pending',
+      cardClass: 'bg-amber-50/50 border-amber-100',
+      labelClass: 'text-amber-600',
+      badgeClass: 'bg-amber-100/60 text-amber-700',
+      paxClass: 'text-amber-900',
+      subClass: 'text-amber-700',
+      famClass: 'text-amber-600/70',
+      dividerClass: 'border-amber-200/40',
+      sideTextClass: 'text-amber-800',
+      sideLabelClass: 'text-amber-600/60'
+    },
+    {
+      key: 'Maybe',
+      label: 'Maybe',
+      cardClass: 'bg-purple-50/50 border-purple-100',
+      labelClass: 'text-purple-600',
+      badgeClass: 'bg-purple-100/60 text-purple-700',
+      paxClass: 'text-purple-900',
+      subClass: 'text-purple-700',
+      famClass: 'text-purple-600/70',
+      dividerClass: 'border-purple-200/40',
+      sideTextClass: 'text-purple-800',
+      sideLabelClass: 'text-purple-600/60'
+    },
+    {
+      key: 'Declined',
+      label: 'Declined',
+      cardClass: 'bg-rose-50/50 border-rose-100',
+      labelClass: 'text-rose-600',
+      badgeClass: 'bg-rose-100/60 text-rose-700',
+      paxClass: 'text-rose-900',
+      subClass: 'text-rose-700',
+      famClass: 'text-rose-600/70',
+      dividerClass: 'border-rose-200/40',
+      sideTextClass: 'text-rose-800',
+      sideLabelClass: 'text-rose-600/60'
+    }
+  ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-24 animate-in fade-in duration-300 p-4 md:p-6">
@@ -240,162 +328,64 @@ export const GuestMap = () => {
           <ClipboardList size={18} className="text-gray-400" />
           <div>
             <h3 className="font-bold text-gray-900 text-base">Global Wedding Statistics</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Comprehensive breakdown of guests, pax, and estimated costs for both sides</p>
+            <p className="text-xs text-gray-500 mt-0.5">Comprehensive breakdown of guests, pax, and estimated costs (Adults × Full Rate + Half × Half Rate; Kids: 0)</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          
-          {/* Total Overall Block */}
-          <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex flex-col justify-between h-full">
-            <div>
-              <div className="text-[10px] text-blue-600 font-bold uppercase tracking-wider mb-1">
-                Grand Total
-              </div>
-              <div className="bg-blue-100/50 text-blue-700 px-2.5 py-1 rounded-md font-bold text-[10px] w-fit mb-3">
-                LKR {allStats.Total.cost.toLocaleString()}
-              </div>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-3xl font-black text-blue-900 leading-none">{allStats.Total.pax}</span>
-                <span className="text-xs font-bold text-blue-700">Pax</span>
-              </div>
-              <div className="text-[11px] font-semibold text-blue-600/70 mt-1">
-                ({allStats.Total.entries} Fam)
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-blue-200/40 flex flex-col gap-1.5 text-[10px] font-bold text-blue-800">
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-blue-600/60 uppercase">Bride</span>
-                <span className="whitespace-nowrap">{brideStats.Total.pax} Pax <span className="opacity-70">({brideStats.Total.entries})</span></span>
-              </div>
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-blue-600/60 uppercase">Groom</span>
-                <span className="whitespace-nowrap">{groomStats.Total.pax} Pax <span className="opacity-70">({groomStats.Total.entries})</span></span>
-              </div>
-            </div>
-          </div>
+          {statCardsConfig.map((cfg) => {
+            const allS = allStats[cfg.key];
+            const bS = brideStats[cfg.key];
+            const gS = groomStats[cfg.key];
 
-          {/* Confirmed Block */}
-          <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl flex flex-col justify-between h-full">
-            <div>
-              <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider mb-1">
-                Confirmed
-              </div>
-              <div className="bg-emerald-100/50 text-emerald-700 px-2.5 py-1 rounded-md font-bold text-[10px] w-fit mb-3">
-                LKR {allStats.Confirmed.cost.toLocaleString()}
-              </div>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-3xl font-black text-emerald-900 leading-none">{allStats.Confirmed.pax}</span>
-                <span className="text-xs font-bold text-emerald-700">Pax</span>
-              </div>
-              <div className="text-[11px] font-semibold text-emerald-600/70 mt-1">
-                ({allStats.Confirmed.entries} Fam)
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-emerald-200/40 flex flex-col gap-1.5 text-[10px] font-bold text-emerald-800">
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-emerald-600/60 uppercase">Bride</span>
-                <span className="whitespace-nowrap">{brideStats.Confirmed.pax} Pax <span className="opacity-70">({brideStats.Confirmed.entries})</span></span>
-              </div>
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-emerald-600/60 uppercase">Groom</span>
-                <span className="whitespace-nowrap">{groomStats.Confirmed.pax} Pax <span className="opacity-70">({groomStats.Confirmed.entries})</span></span>
-              </div>
-            </div>
-          </div>
+            return (
+              <div key={cfg.key} className={`${cfg.cardClass} border p-4 rounded-xl flex flex-col justify-between h-full`}>
+                <div>
+                  <div className={`text-[10px] ${cfg.labelClass} font-bold uppercase tracking-wider mb-1`}>
+                    {cfg.label}
+                  </div>
+                  <div className={`${cfg.badgeClass} px-2.5 py-1 rounded-md font-bold text-[10px] w-fit mb-3`}>
+                    LKR {allS.cost.toLocaleString()}
+                  </div>
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
+                    <span className={`text-3xl font-black ${cfg.paxClass} leading-none`}>{allS.pax}</span>
+                    <span className={`text-xs font-bold ${cfg.subClass}`}>Pax</span>
+                  </div>
+                  <div className={`text-[11px] font-semibold ${cfg.famClass} mt-1`}>
+                    ({allS.entries} Fam)
+                  </div>
 
-          {/* Pending Block */}
-          <div className="bg-amber-50/50 border border-amber-100 p-4 rounded-xl flex flex-col justify-between h-full">
-            <div>
-              <div className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">
-                Pending
+                  {/* Separate Adults, Half, Kids Counts */}
+                  <div className={`mt-2.5 pt-2 border-t ${cfg.dividerClass} flex flex-wrap gap-1.5 text-[10px] font-bold ${cfg.sideTextClass}`}>
+                    <span className="bg-white/70 px-1.5 py-0.5 rounded">Adults: {allS.adults}</span>
+                    <span className="bg-white/70 px-1.5 py-0.5 rounded">Half: {allS.half}</span>
+                    <span className="bg-white/70 px-1.5 py-0.5 rounded opacity-75">Kids: {allS.kids} (Free)</span>
+                  </div>
+                </div>
+                
+                <div className={`mt-3 pt-3 border-t ${cfg.dividerClass} flex flex-col gap-2 text-[10px] font-bold ${cfg.sideTextClass}`}>
+                  <div className="space-y-0.5">
+                    <div className="flex flex-wrap justify-between items-center gap-1">
+                      <span className={`${cfg.sideLabelClass} uppercase`}>Bride</span>
+                      <span className="whitespace-nowrap">{bS.pax} Pax <span className="opacity-70">({bS.entries})</span></span>
+                    </div>
+                    <div className="text-[9px] opacity-85 flex justify-between">
+                      <span>A: {bS.adults} • H: {bS.half} • K: {bS.kids}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex flex-wrap justify-between items-center gap-1">
+                      <span className={`${cfg.sideLabelClass} uppercase`}>Groom</span>
+                      <span className="whitespace-nowrap">{gS.pax} Pax <span className="opacity-70">({gS.entries})</span></span>
+                    </div>
+                    <div className="text-[9px] opacity-85 flex justify-between">
+                      <span>A: {gS.adults} • H: {gS.half} • K: {gS.kids}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="bg-amber-100/50 text-amber-700 px-2.5 py-1 rounded-md font-bold text-[10px] w-fit mb-3">
-                LKR {allStats.Pending.cost.toLocaleString()}
-              </div>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-3xl font-black text-amber-900 leading-none">{allStats.Pending.pax}</span>
-                <span className="text-xs font-bold text-amber-700">Pax</span>
-              </div>
-              <div className="text-[11px] font-semibold text-amber-600/70 mt-1">
-                ({allStats.Pending.entries} Fam)
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-amber-200/40 flex flex-col gap-1.5 text-[10px] font-bold text-amber-800">
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-amber-600/60 uppercase">Bride</span>
-                <span className="whitespace-nowrap">{brideStats.Pending.pax} Pax <span className="opacity-70">({brideStats.Pending.entries})</span></span>
-              </div>
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-amber-600/60 uppercase">Groom</span>
-                <span className="whitespace-nowrap">{groomStats.Pending.pax} Pax <span className="opacity-70">({groomStats.Pending.entries})</span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Maybe Block */}
-          <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-xl flex flex-col justify-between h-full">
-            <div>
-              <div className="text-[10px] text-purple-600 font-bold uppercase tracking-wider mb-1">
-                Maybe
-              </div>
-              <div className="bg-purple-100/50 text-purple-700 px-2.5 py-1 rounded-md font-bold text-[10px] w-fit mb-3">
-                LKR {allStats.Maybe.cost.toLocaleString()}
-              </div>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-3xl font-black text-purple-900 leading-none">{allStats.Maybe.pax}</span>
-                <span className="text-xs font-bold text-purple-700">Pax</span>
-              </div>
-              <div className="text-[11px] font-semibold text-purple-600/70 mt-1">
-                ({allStats.Maybe.entries} Fam)
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-purple-200/40 flex flex-col gap-1.5 text-[10px] font-bold text-purple-800">
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-purple-600/60 uppercase">Bride</span>
-                <span className="whitespace-nowrap">{brideStats.Maybe.pax} Pax <span className="opacity-70">({brideStats.Maybe.entries})</span></span>
-              </div>
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-purple-600/60 uppercase">Groom</span>
-                <span className="whitespace-nowrap">{groomStats.Maybe.pax} Pax <span className="opacity-70">({groomStats.Maybe.entries})</span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Declined Block */}
-          <div className="bg-rose-50/50 border border-rose-100 p-4 rounded-xl flex flex-col justify-between h-full">
-            <div>
-              <div className="text-[10px] text-rose-600 font-bold uppercase tracking-wider mb-1">
-                Declined
-              </div>
-              <div className="bg-rose-100/50 text-rose-700 px-2.5 py-1 rounded-md font-bold text-[10px] w-fit mb-3">
-                LKR {allStats.Declined.cost.toLocaleString()}
-              </div>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-3xl font-black text-rose-900 leading-none">{allStats.Declined.pax}</span>
-                <span className="text-xs font-bold text-rose-700">Pax</span>
-              </div>
-              <div className="text-[11px] font-semibold text-rose-600/70 mt-1">
-                ({allStats.Declined.entries} Fam)
-              </div>
-            </div>
-            
-            <div className="mt-4 pt-3 border-t border-rose-200/40 flex flex-col gap-1.5 text-[10px] font-bold text-rose-800">
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-rose-600/60 uppercase">Bride</span>
-                <span className="whitespace-nowrap">{brideStats.Declined.pax} Pax <span className="opacity-70">({brideStats.Declined.entries})</span></span>
-              </div>
-              <div className="flex flex-wrap justify-between items-center gap-2">
-                <span className="text-rose-600/60 uppercase">Groom</span>
-                <span className="whitespace-nowrap">{groomStats.Declined.pax} Pax <span className="opacity-70">({groomStats.Declined.entries})</span></span>
-              </div>
-            </div>
-          </div>
-
+            );
+          })}
         </div>
       </div>
 
@@ -423,7 +413,7 @@ export const GuestMap = () => {
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto bg-gray-50 p-3 rounded-xl border border-gray-200/60">
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full">
               <div className="flex items-center gap-2 w-full sm:w-auto flex-1">
-                <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">Full Rate:</label>
+                <label className="text-[11px] font-bold text-gray-500 whitespace-nowrap">Adult Full Rate:</label>
                 <input 
                   type="number" 
                   value={fullRate} 
@@ -482,37 +472,35 @@ export const GuestMap = () => {
               .map((g, originalIndex) => ({ ...g, originalIndex }))
               .filter(g => (g.side || "Bride's") === activeSide && g.category === catTitle);
 
-            const totalCount = catGuests.length;
-            const totalAdults = catGuests.reduce((sum, g) => sum + (Number(g.adults) || 0), 0);
-            const totalHalf = catGuests.reduce((sum, g) => sum + (Number(g.half) || 0), 0);
-            const totalKids = catGuests.reduce((sum, g) => sum + (Number(g.kids) || 0), 0);
-            const categoryPax = totalAdults + totalHalf + totalKids;
-            
-            const confirmedGuests = catGuests.filter(g => g.rsvp === 'Confirmed');
-            const confirmedCount = confirmedGuests.length;
-            const confirmedPax = confirmedGuests.reduce((sum, g) => sum + (Number(g.adults) || 0) + (Number(g.half) || 0) + (Number(g.kids) || 0), 0);
+            const totalBreakdown = sumGuestBreakdown(catGuests);
+            const confirmedBreakdown = sumGuestBreakdown(catGuests.filter(g => (g.rsvp || 'Pending') === 'Confirmed'));
+            const pendingBreakdown = sumGuestBreakdown(catGuests.filter(g => (g.rsvp || 'Pending') === 'Pending'));
+            const maybeBreakdown = sumGuestBreakdown(catGuests.filter(g => (g.rsvp || 'Pending') === 'Maybe'));
+            const declinedBreakdown = sumGuestBreakdown(catGuests.filter(g => (g.rsvp || 'Pending') === 'Declined'));
 
             const isCustomCategory = !defaultCategories.includes(catTitle);
 
             return (
               <div key={cIdx}>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white px-5 py-3.5 rounded-xl border border-gray-200 gap-4 hover:bg-gray-50/50 transition-colors">
-                  <div className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-4">
-                    <h4 className="font-extrabold text-gray-900 text-sm w-auto min-w-[130px]">{catTitle}</h4>
+                <div className="flex flex-col gap-3 bg-white px-5 py-4 rounded-xl border border-gray-200 hover:bg-gray-50/50 transition-colors">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="font-extrabold text-gray-900 text-sm min-w-[130px]">{catTitle}</h4>
                       <span className="text-[11px] text-blue-700 bg-blue-100/80 px-2.5 py-1 rounded-md font-bold whitespace-nowrap">
-                        Total: {categoryPax} Pax ({totalCount} Fam)
+                        Total: {totalBreakdown.pax} Pax ({totalBreakdown.families} Fam)
                       </span>
-                      <span className="text-[11px] text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-md font-bold whitespace-nowrap">
-                        Confirmed: {confirmedPax} Pax ({confirmedCount} Fam)
+                      <span className="text-[11px] text-slate-800 bg-slate-100 border border-slate-200/70 px-2.5 py-1 rounded-md font-bold whitespace-nowrap">
+                        Adults: {totalBreakdown.adults}
+                      </span>
+                      <span className="text-[11px] text-slate-800 bg-slate-100 border border-slate-200/70 px-2.5 py-1 rounded-md font-bold whitespace-nowrap">
+                        Half: {totalBreakdown.half}
+                      </span>
+                      <span className="text-[11px] text-slate-800 bg-slate-100 border border-slate-200/70 px-2.5 py-1 rounded-md font-bold whitespace-nowrap opacity-75">
+                        Kids: {totalBreakdown.kids} (Free)
                       </span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
-                    <span className="text-[11px] text-gray-500 font-bold tracking-widest uppercase">
-                      {totalAdults} ADULTS • {totalHalf} HALF • {totalKids} KIDS
-                    </span>
-                    <div className="flex items-center gap-1">
+
+                    <div className="flex items-center gap-1 self-end sm:self-auto">
                       {isCustomCategory && (
                         <button 
                           onClick={() => handleDeleteCategory(catTitle)} 
@@ -529,6 +517,22 @@ export const GuestMap = () => {
                         {expandedCategories[catTitle] ? <Eye size={16}/> : <EyeOff size={16}/>}
                       </button>
                     </div>
+                  </div>
+
+                  {/* RSVP Breakdown Row (Confirmed, Pending, Maybe, Declined) */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100 text-[10px] font-bold">
+                    <span className="text-emerald-800 bg-emerald-50 border border-emerald-200/70 px-2.5 py-1 rounded-md whitespace-nowrap">
+                      Confirmed ({confirmedBreakdown.pax} Pax / {confirmedBreakdown.families} Fam): Adults {confirmedBreakdown.adults} • Half {confirmedBreakdown.half} • Kids {confirmedBreakdown.kids}
+                    </span>
+                    <span className="text-amber-800 bg-amber-50 border border-amber-200/70 px-2.5 py-1 rounded-md whitespace-nowrap">
+                      Pending ({pendingBreakdown.pax} Pax / {pendingBreakdown.families} Fam): Adults {pendingBreakdown.adults} • Half {pendingBreakdown.half} • Kids {pendingBreakdown.kids}
+                    </span>
+                    <span className="text-purple-800 bg-purple-50 border border-purple-200/70 px-2.5 py-1 rounded-md whitespace-nowrap">
+                      Maybe ({maybeBreakdown.pax} Pax / {maybeBreakdown.families} Fam): Adults {maybeBreakdown.adults} • Half {maybeBreakdown.half} • Kids {maybeBreakdown.kids}
+                    </span>
+                    <span className="text-rose-800 bg-rose-50 border border-rose-200/70 px-2.5 py-1 rounded-md whitespace-nowrap">
+                      Declined ({declinedBreakdown.pax} Pax / {declinedBreakdown.families} Fam): Adults {declinedBreakdown.adults} • Half {declinedBreakdown.half} • Kids {declinedBreakdown.kids}
+                    </span>
                   </div>
                 </div>
 
