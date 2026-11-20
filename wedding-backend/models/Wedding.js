@@ -17,10 +17,21 @@ const WeddingSchema = new mongoose.Schema({
     startTime: String,
     endTime: String
   },
+  plateRates: {
+    fullRate: { type: Number, default: 0 },
+    halfRate: { type: Number, default: 0 }
+  },
+  morningPlate: {
+    pax: { type: Number, default: 0 },
+    rate: { type: Number, default: 0 },
+    amount: { type: Number, default: 0 }
+  },
+  customGuestCategories: [{ type: String }],
   budget: {
     totalBudget: { type: Number, default: 0 },
     categories: [{
       name: String,
+      isPlateCost: Boolean,
       items: [{ name: String, cost: Number, payment: Number, balance: Number }]
     }]
   },

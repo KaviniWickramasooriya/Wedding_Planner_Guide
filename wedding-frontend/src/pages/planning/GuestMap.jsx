@@ -202,8 +202,6 @@ export const GuestMap = () => {
   const brideStats = calcStats(guests.filter(g => (g.side || "Bride's") === "Bride's"));
   const groomStats = calcStats(guests.filter(g => g.side === "Groom's"));
 
-  const filteredGuests = guests.filter(g => (g.side || "Bride's") === activeSide);
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-24 animate-in fade-in duration-300 p-4 md:p-6">
       {/* Top Banner Header */}
@@ -490,7 +488,6 @@ export const GuestMap = () => {
             const totalKids = catGuests.reduce((sum, g) => sum + (Number(g.kids) || 0), 0);
             const categoryPax = totalAdults + totalHalf + totalKids;
             
-            // Calculate specific stats for confirmed guests in this category
             const confirmedGuests = catGuests.filter(g => g.rsvp === 'Confirmed');
             const confirmedCount = confirmedGuests.length;
             const confirmedPax = confirmedGuests.reduce((sum, g) => sum + (Number(g.adults) || 0) + (Number(g.half) || 0) + (Number(g.kids) || 0), 0);
@@ -499,7 +496,6 @@ export const GuestMap = () => {
 
             return (
               <div key={cIdx}>
-                {/* Updated category header with dual tags (Total & Confirmed) */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white px-5 py-3.5 rounded-xl border border-gray-200 gap-4 hover:bg-gray-50/50 transition-colors">
                   <div className="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-4">
                     <h4 className="font-extrabold text-gray-900 text-sm w-auto min-w-[130px]">{catTitle}</h4>

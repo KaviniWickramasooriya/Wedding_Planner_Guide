@@ -164,7 +164,6 @@ export const BudgetMap = () => {
 
   budget.categories = budget.categories.filter(cat => cat.name !== "Plate Costs" && !cat.isPlateCost);
 
-  // Advanced Budget Calculations (Using category item totals without duplicate plate addition)
   let totalItemsCost = 0;
   let totalPaid = 0;
   
@@ -175,7 +174,7 @@ export const BudgetMap = () => {
     });
   });
 
-  const totalEstimatedCost = totalItemsCost; // Without automatic plate cost stacking since plates are entered in categories
+  const totalEstimatedCost = totalItemsCost;
   const balanceToPay = totalEstimatedCost - totalPaid;
   const remainingBudget = (Number(budget.totalBudget) || 0) - totalEstimatedCost;
 
@@ -439,10 +438,12 @@ export const BudgetMap = () => {
         {budget.categories?.map((cat, idx) => {
           const isExpanded = expandedCat === cat.name;
           const catTotal = cat.items?.reduce((sum, i) => sum + (Number(i.cost) || 0), 0) || 0;
+          const catPaid = cat.items?.reduce((sum, i) => sum + (Number(i.payment) || 0), 0) || 0;
+          const catBalance = Math.max(0, catTotal - catPaid);
 
           return (
             <div key={idx} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-              <div className="w-full flex justify-between p-4 hover:bg-gray-50/60 items-center transition-colors">
+              <div className="w-full flex flex-col sm:flex-row justify-between p-4 hover:bg-gray-50/60 items-start sm:items-center transition-colors gap-3">
                 <button 
                   onClick={() => setExpandedCat(isExpanded ? null : cat.name)} 
                   className="flex items-center gap-2.5 flex-1 text-left"
@@ -450,21 +451,33 @@ export const BudgetMap = () => {
                   <Wallet size={16} className="text-emerald-500 shrink-0"/>
                   <span className="font-bold text-xs md:text-sm text-gray-800">{cat.name || 'Unnamed Category'}</span>
                 </button>
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-xs md:text-sm text-emerald-600">LKR {catTotal.toLocaleString()}</span>
-                  <button 
-                    onClick={() => handleDeleteCategory(idx)}
-                    className="text-gray-300 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50"
-                    title="Delete Category"
-                  >
-                    <Trash2 size={16}/>
-                  </button>
-                  <button 
-                    onClick={() => setExpandedCat(isExpanded ? null : cat.name)}
-                    className="text-gray-400 p-1"
-                  >
-                    {isExpanded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
-                  </button>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px] font-bold">
+                    <span className="text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100 whitespace-nowrap">
+                      Paid: LKR {catPaid.toLocaleString()}
+                    </span>
+                    <span className="text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-100 whitespace-nowrap">
+                      Bal: LKR {catBalance.toLocaleString()}
+                    </span>
+                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 font-extrabold whitespace-nowrap">
+                      LKR {catTotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button 
+                      onClick={() => handleDeleteCategory(idx)}
+                      className="text-gray-300 hover:text-rose-600 transition-colors p-1.5 rounded-lg hover:bg-rose-50"
+                      title="Delete Category"
+                    >
+                      <Trash2 size={16}/>
+                    </button>
+                    <button 
+                      onClick={() => setExpandedCat(isExpanded ? null : cat.name)}
+                      className="text-gray-400 p-1"
+                    >
+                      {isExpanded ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+                    </button>
+                  </div>
                 </div>
               </div>
 
